@@ -1,1 +1,250 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DtxdF</title><link>https://dtxdf.github.io/</link><description>Recent content on DtxdF</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://dtxdf.github.io/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DtxdF</title><link>https://dtxdf.github.io/</link><description>Recent content on DtxdF</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 04 Mar 2023 11:55:38 -0400</lastBuildDate><atom:link href="https://dtxdf.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Python With Appjail | FastAPI</title><link>https://dtxdf.github.io/post/python-with-appjail-fastapi/</link><pubDate>Sat, 04 Mar 2023 11:55:38 -0400</pubDate><guid>https://dtxdf.github.io/post/python-with-appjail-fastapi/</guid><description>
+&lt;p>In any development project, you usually have to worry about many components: databases, dependencies, configurations, network settings and so on. Things can get too complicated when you need to transfer your project to another colleague or, even worse, transfer the project to a production environment, and very bad things can happen&amp;hellip; Those problems has been solved by some useful tools, such as those for creating and managing containers.&lt;/p>
+&lt;p>&lt;a href="https://github.com/DtxdF/AppJail">AppJail&lt;/a> is the framework we will use to create a container with our project: an API using the FastAPI framework. By using this tool we ensure that we can share and reproduce our project to guarantee that it will run smoothly with virtually the same environment as on the host. As a bonus, the host will not be affected.&lt;/p>
+&lt;h2 id="the-project">
+&lt;a href="#the-project" class="anchor">
+&lt;svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+&lt;path fill-rule="evenodd"
+d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+&lt;/path>
+&lt;/svg>
+&lt;/a>
+The project
+&lt;/h2>
+&lt;p>We use the following structure to simplify the development of our project:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">mkdir project/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mkdir project/app/
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;strong>Note&lt;/strong>: All files mentioned in this document are relative to the &lt;code>project/&lt;/code> directory.&lt;/p>
+&lt;p>Now we create a &lt;code>app/requirements.txt&lt;/code> to put the dependencies that our project needs:&lt;/p>
+&lt;pre tabindex="0">&lt;code>fastapi[all]
+&lt;/code>&lt;/pre>&lt;p>&lt;strong>Note&lt;/strong>: For simplicitly, we will install FastAPI with optional dependencies and features, but you probably won&amp;rsquo;t need all of them in a production environment. See &lt;a href="https://fastapi.tiangolo.com/tutorial">documentation&lt;/a> for details.&lt;/p>
+&lt;p>Our &lt;code>app/main.py&lt;/code> is only a few lines long:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">fastapi&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">FastAPI&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">app&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">FastAPI&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nd">@app.get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">async&lt;/span> &lt;span class="k">def&lt;/span> &lt;span class="nf">root&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;message&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Hello world&amp;#34;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>A simple &lt;code>hello world&lt;/code> is displayed each time the user makes an HTTP request with the GET method.&lt;/p>
+&lt;h2 id="the-makejail">
+&lt;a href="#the-makejail" class="anchor">
+&lt;svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+&lt;path fill-rule="evenodd"
+d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+&lt;/path>
+&lt;/svg>
+&lt;/a>
+The Makejail
+&lt;/h2>
+&lt;p>The next step is to create the Makejail.&lt;/p>
+&lt;pre tabindex="0">&lt;code>INCLUDE gh+AppJail-makejails/python
+&lt;/code>&lt;/pre>&lt;p>We have included the Makejail from the &lt;a href="https://github.com/AppJail-makejails">centralized repository&lt;/a> to install Python.&lt;/p>
+&lt;pre tabindex="0">&lt;code># Optional, see below for details.
+INCLUDE options/network.makejail
+&lt;/code>&lt;/pre>&lt;p>Another Makejail with only the network options we use for this jail. The content is as follows:&lt;/p>
+&lt;pre tabindex="0">&lt;code>ARG network
+ARG interface=python
+OPTION virtualnet=${network}:${interface} default
+OPTION nat
+&lt;/code>&lt;/pre>&lt;p>Of course, we need the &lt;code>options/&lt;/code> directory beforehand (remember: relative to the &lt;code>project/&lt;/code> directory):&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">mkdir options/
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Another way to achieve the above is to define option by option on the command-line when building the jail as we will see later.&lt;/p>
+&lt;pre tabindex="0">&lt;code>WORKDIR /app
+COPY app/
+&lt;/code>&lt;/pre>&lt;p>Using &lt;code>WORKDIR&lt;/code> we create a directory named &lt;code>/app&lt;/code> inside the jail. As we have changed the working directory, &lt;code>COPY&lt;/code> is affected and the target directory is relative to that directory, so we can omit the second argument and the files in &lt;code>app/&lt;/code> directory will be copied from the host to the jail. Remember that the &lt;code>/&lt;/code> suffix is for copying all the files, not the directory itself.&lt;/p>
+&lt;pre tabindex="0">&lt;code>CMD pw useradd -n pyapp -d /app -s /bin/sh
+CMD mkdir -p /app
+CMD chown -R pyapp:pyapp /app
+&lt;/code>&lt;/pre>&lt;p>We create a dedicated user named &lt;code>pyapp&lt;/code> to run the script with less privileges than &lt;code>root&lt;/code>.&lt;/p>
+&lt;pre tabindex="0">&lt;code>PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-pip
+&lt;/code>&lt;/pre>&lt;p>&lt;code>devel/py-pip&lt;/code> is not installed by default, so we install it. We can install pip explicitly with the corresponding python version, but the Makejail for Python provides some build arguments.&lt;/p>
+&lt;pre tabindex="0">&lt;code>PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-wheel
+PKG rust
+&lt;/code>&lt;/pre>&lt;p>&lt;code>lang/rust&lt;/code> is required by a FastAPI dependency. It is recommended to install &lt;code>devel/py-wheel&lt;/code> when installing python dependencies.&lt;/p>
+&lt;pre tabindex="0">&lt;code>USER pyapp
+RUN pip install --user -r requirements.txt
+&lt;/code>&lt;/pre>&lt;p>We install the dependencies by running &lt;code>pip&lt;/code> using the dedicated user.&lt;/p>
+&lt;pre tabindex="0">&lt;code>STAGE cmd
+USER pyapp
+WORKDIR /app
+RUN /app/.local/bin/uvicorn main:app --reload --host 0.0.0.0
+&lt;/code>&lt;/pre>&lt;p>The &lt;code>cmd&lt;/code> stage is used to run the python script using &lt;code>appjail run&lt;/code> as we will se later. The working directory is reset with each stage, so we need to specify it again. &lt;code>USER&lt;/code> is also reset for each stage.&lt;/p>
+&lt;p>The command &lt;code>uvicorn main:app&lt;/code> refers to:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>main&lt;/code>: the file &lt;code>main.py&lt;/code> (the Python &amp;lsquo;module&amp;rsquo;).&lt;/li>
+&lt;li>&lt;code>app&lt;/code>: the object created inside of &lt;code>main.py&lt;/code> with the line &lt;code>app = FastAPI()&lt;/code>.&lt;/li>
+&lt;li>&lt;code>--reload&lt;/code>: make the server restart after code changes. Only use for development.&lt;/li>
+&lt;li>&lt;code>--host&lt;/code>: as the default is &lt;code>127.0.0.1&lt;/code>, we need to change to the jail&amp;rsquo;s IP address, but for simplicity, we use &lt;code>0.0.0.0&lt;/code> to listen on all IP addresses of all interfaces.&lt;/li>
+&lt;/ul>
+&lt;p>All of the above instructions in a single file can be seen below:&lt;/p>
+&lt;pre tabindex="0">&lt;code>INCLUDE gh+AppJail-makejails/python
+# Optional, see below for details.
+INCLUDE options/network.makejail
+WORKDIR /app
+COPY app/
+CMD pw useradd -n pyapp -d /app -s /bin/sh
+CMD mkdir -p /app
+CMD chown -R pyapp:pyapp /app
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-pip
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-wheel
+PKG rust
+USER pyapp
+RUN pip install --user -r requirements.txt
+STAGE cmd
+USER pyapp
+WORKDIR /app
+RUN /app/.local/bin/uvicorn main:app --reload --host 0.0.0.0
+&lt;/code>&lt;/pre>&lt;h2 id="the-product">
+&lt;a href="#the-product" class="anchor">
+&lt;svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+&lt;path fill-rule="evenodd"
+d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+&lt;/path>
+&lt;/svg>
+&lt;/a>
+The product
+&lt;/h2>
+&lt;p>Since we are going to use a virtual network configuration, we first need to create one:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">#&lt;/span> appjail network add development 172.0.0.0/10
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gp">#&lt;/span> appjail network list
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">NAME NETWORK CIDR BROADCAST GATEWAY MINADDR MAXADDR ADDRESSES DESCRIPTION
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">development 172.0.0.0 10 172.63.255.255 172.0.0.1 172.0.0.1 172.63.255.254 4194302 -
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>All the requirements have been done correctly, so all we have to do is open a shell and run:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">appjail makejail -j pyapp -- --network development
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The command &lt;code>appjail makejail&lt;/code> refers to:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>-j pyapp&lt;/code>: name of the jail. If not defined, a random name is chosen.&lt;/li>
+&lt;li>&lt;code>--network development&lt;/code>: the virtual network to be used.&lt;/li>
+&lt;/ul>
+&lt;p>As mentioned in previous sections, we can specify option by option on the command-line instead of using &lt;code>options/network.makejail&lt;/code>. Of course, remove the instruction that includes that file if you want to use the command-line.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">appjail makejail -j pyapp -o &lt;span class="nv">virtualnet&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;development:pyapp default&amp;#34;&lt;/span> -o nat
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Once the above process is finished, we can run the API:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">#&lt;/span> appjail run pyapp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INFO: Will watch for changes in these directories: [&amp;#39;/app&amp;#39;]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INFO: Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INFO: Started reloader process [93321] using WatchFiles
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INFO: Started server process [93323]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INFO: Waiting for application startup.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INFO: Application startup complete.
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>And we can make an HTTP request but we only need the jail&amp;rsquo;s IP address.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">#&lt;/span> appjail jail list -j pyapp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">STATUS NAME TYPE VERSION PORTS NETWORK_IP4
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">UP pyapp thin 13.1-RELEASE - 172.0.0.2
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">&lt;/span>&lt;span class="gp">#&lt;/span> curl -i &lt;span class="s1">&amp;#39;http://172.0.0.2:8000&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">HTTP/1.1 200 OK
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">date: Sun, 05 Mar 2023 00:10:07 GMT
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">server: uvicorn
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">content-length: 25
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">content-type: application/json
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="go">{&amp;#34;message&amp;#34;:&amp;#34;Hello world&amp;#34;}
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="simplify-your-life">
+&lt;a href="#simplify-your-life" class="anchor">
+&lt;svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+&lt;path fill-rule="evenodd"
+d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+&lt;/path>
+&lt;/svg>
+&lt;/a>
+Simplify your life
+&lt;/h2>
+&lt;p>There is a time when we develop a python project and a dependency requires another dependency to be compiled. This is the case for &lt;code>watchfiles&lt;/code> in the FastAPI framework, which requires &lt;code>lang/rust&lt;/code> to compile its stuff. This takes a long time depending on your hardware, but there is a simple way to spend less time.&lt;/p>
+&lt;p>We can use the precompiled binaries in the FreeBSD repositories if the dependencies are already ported, so we just have to change our Makejail a bit to do this job.&lt;/p>
+&lt;pre tabindex="0">&lt;code>INCLUDE gh+AppJail-makejails/python
+# Optional, see below for details.
+INCLUDE options/network.makejail
+WORKDIR /app
+COPY app/
+CMD pw useradd -n pyapp -d /app -s /bin/sh
+CMD mkdir -p /app
+CMD chown -R pyapp:pyapp /app
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-fastapi
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-uvicorn
+STAGE cmd
+USER pyapp
+WORKDIR /app
+RUN uvicorn main:app --reload --host 0.0.0.0
+&lt;/code>&lt;/pre></description></item></channel></rss>
