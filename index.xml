@@ -10,7 +10,7 @@ d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.
 What Are AppJail and AppJail Director?
 &lt;/h2>
 &lt;p>&lt;strong>AppJail&lt;/strong> is a framework that provides preconfigured and self-contained applications, frameworks and software stacks, such as WordPress. Using this tool we will have a package installed inside a jail, a lightweight and isolated environment with any custom configuration our software needs. &lt;a href="https://github.com/DtxdF/AppJail">See also&lt;/a>.&lt;/p>
-&lt;p>&lt;strong>AppJail Director&lt;/strong> is an complementary tool that help us link individual jails so they can work together using an easy-to-learn YAML file. &lt;a href="https://github.com/DtxdF/director">See also&lt;/a>.&lt;/p>
+&lt;p>&lt;strong>AppJail Director&lt;/strong> is a complementary tool that help us link individual jails so they can work together using an easy-to-learn YAML file. &lt;a href="https://github.com/DtxdF/director">See also&lt;/a>.&lt;/p>
 &lt;p>Although an optional feature, AppJail has images, a static snapshot of a jail that improves performance by only downloading the image and importing it when needed. Once an image is downloaded, it is cached until the maintainer of that image updates it. Almost all images in the &lt;a href="https://github.com/AppJail-makejails">centralized repository&lt;/a> take advantage of this feature.&lt;/p>
 &lt;h2 id="why-use-appjail-director-to-run-wordpress">
 &lt;a href="#why-use-appjail-director-to-run-wordpress" class="anchor">
