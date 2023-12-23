@@ -7,7 +7,7 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 22 Dec 2023 19:02:47 -0400</lastBuildDate><atom:link href="https://dtxdf.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-    <title>How to Install Gitea on FreeBSD Using Appjail Director</title>
+    <title>How to Install Gitea on FreeBSD Using AppJail Director</title>
     <link>https://dtxdf.github.io/post/how-to-install-gitea-on-freebsd-using-appjail-director/</link>
     <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
     
@@ -17,7 +17,7 @@
     &lt;img src=&#34;https://i.imgur.com/zNG2I4j.jpeg&#34; width=&#34;80%&#34; height=&#34;auto&#34;&gt;
 &lt;/p&gt;
 &lt;p&gt;Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but there is an open source project, self-hosted, with so many features that can be installed in a few minutes and the best part is that we can install it on FreeBSD. The project is called Gitea, which is a software for hosting our projects using Git. It has other collaborative features such as bug tracking, code review, continuous integration, kanban boards, tickets and wikis.&lt;/p&gt;
-&lt;p&gt;In this tutorial we will install &lt;a href=&#34;https://github.com/AppJail-makejails/gitea&#34;&gt;Gitea&lt;/a&gt; on FreeBSD using &lt;a href=&#34;https://github.com/DtxdF/director&#34;&gt;AppJail Director&lt;/a&gt; and &lt;a href=&#34;https://github.com/AppJail-makejails/postgres&#34;&gt;PostgreSQL&lt;/a&gt; as our database backend.&lt;/p&gt;
+&lt;p&gt;In this tutorial we will install &lt;a href=&#34;https://github.com/AppJail-makejails/gitea&#34;&gt;Gitea&lt;/a&gt; and &lt;a href=&#34;https://github.com/AppJail-makejails/postgres&#34;&gt;PostgreSQL&lt;/a&gt; on FreeBSD using &lt;a href=&#34;https://github.com/DtxdF/director&#34;&gt;AppJail Director&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;pre-steps&#34;&gt;
     &lt;a href=&#34;#pre-steps&#34; class=&#34;anchor&#34;&gt;
         &lt;svg class=&#34;icon&#34; aria-hidden=&#34;true&#34; focusable=&#34;false&#34; height=&#34;16&#34; version=&#34;1.1&#34; viewBox=&#34;0 0 16 16&#34; width=&#34;16&#34;&gt;
