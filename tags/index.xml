@@ -1,1 +1,138 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tags on DtxdF</title><link>https://dtxdf.github.io/tags/</link><description>Recent content in Tags on DtxdF</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 22 Aug 2023 15:36:00 -0400</lastBuildDate><atom:link href="https://dtxdf.github.io/tags/index.xml" rel="self" type="application/rss+xml"/><item><title>appjail</title><link>https://dtxdf.github.io/tags/appjail/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/appjail/</guid><description/></item><item><title>appjail-director</title><link>https://dtxdf.github.io/tags/appjail-director/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/appjail-director/</guid><description/></item><item><title>container</title><link>https://dtxdf.github.io/tags/container/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/container/</guid><description/></item><item><title>containers</title><link>https://dtxdf.github.io/tags/containers/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/containers/</guid><description/></item><item><title>database</title><link>https://dtxdf.github.io/tags/database/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/database/</guid><description/></item><item><title>databases</title><link>https://dtxdf.github.io/tags/databases/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/databases/</guid><description/></item><item><title>freebsd</title><link>https://dtxdf.github.io/tags/freebsd/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/freebsd/</guid><description/></item><item><title>jail</title><link>https://dtxdf.github.io/tags/jail/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/jail/</guid><description/></item><item><title>jails</title><link>https://dtxdf.github.io/tags/jails/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/jails/</guid><description/></item><item><title>mariadb</title><link>https://dtxdf.github.io/tags/mariadb/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/mariadb/</guid><description/></item><item><title>sql</title><link>https://dtxdf.github.io/tags/sql/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/sql/</guid><description/></item><item><title>wordpress</title><link>https://dtxdf.github.io/tags/wordpress/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/tags/wordpress/</guid><description/></item><item><title>python</title><link>https://dtxdf.github.io/tags/python/</link><pubDate>Sat, 04 Mar 2023 11:55:38 -0400</pubDate><guid>https://dtxdf.github.io/tags/python/</guid><description/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on DtxdF</title>
+    <link>https://dtxdf.github.io/tags/</link>
+    <description>Recent content in Tags on DtxdF</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 22 Dec 2023 19:02:47 -0400</lastBuildDate>
+    <atom:link href="https://dtxdf.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>adminerevo</title>
+      <link>https://dtxdf.github.io/tags/adminerevo/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/adminerevo/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>appjail</title>
+      <link>https://dtxdf.github.io/tags/appjail/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/appjail/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>appjail-director</title>
+      <link>https://dtxdf.github.io/tags/appjail-director/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/appjail-director/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>container</title>
+      <link>https://dtxdf.github.io/tags/container/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/container/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>containers</title>
+      <link>https://dtxdf.github.io/tags/containers/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/containers/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>database</title>
+      <link>https://dtxdf.github.io/tags/database/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/database/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>databases</title>
+      <link>https://dtxdf.github.io/tags/databases/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/databases/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>freebsd</title>
+      <link>https://dtxdf.github.io/tags/freebsd/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/freebsd/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>gitea</title>
+      <link>https://dtxdf.github.io/tags/gitea/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/gitea/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>jail</title>
+      <link>https://dtxdf.github.io/tags/jail/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/jail/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>jails</title>
+      <link>https://dtxdf.github.io/tags/jails/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/jails/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>postgres</title>
+      <link>https://dtxdf.github.io/tags/postgres/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/postgres/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>postgresql</title>
+      <link>https://dtxdf.github.io/tags/postgresql/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/postgresql/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>sql</title>
+      <link>https://dtxdf.github.io/tags/sql/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/sql/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>mariadb</title>
+      <link>https://dtxdf.github.io/tags/mariadb/</link>
+      <pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/mariadb/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>old</title>
+      <link>https://dtxdf.github.io/tags/old/</link>
+      <pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/old/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>wordpress</title>
+      <link>https://dtxdf.github.io/tags/wordpress/</link>
+      <pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/wordpress/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>python</title>
+      <link>https://dtxdf.github.io/tags/python/</link>
+      <pubDate>Sat, 04 Mar 2023 11:55:38 -0400</pubDate>
+      <guid>https://dtxdf.github.io/tags/python/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

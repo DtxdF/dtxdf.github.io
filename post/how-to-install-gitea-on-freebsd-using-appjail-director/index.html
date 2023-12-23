@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="theme-color" content="dark">
+    <title>How to Install Gitea on FreeBSD Using Appjail Director | DtxdF</title>
+
+    
+    
+    
+    <meta property="og:site_name" content="Blog" />
+    <meta property="og:title" content="How to Install Gitea on FreeBSD Using Appjail Director | DtxdF"/>
+    <meta itemprop="name" content="How to Install Gitea on FreeBSD Using Appjail Director | DtxdF" />
+    <meta name="twitter:title" content="How to Install Gitea on FreeBSD Using Appjail Director | DtxdF" />
+    <meta name="application-name" content="How to Install Gitea on FreeBSD Using Appjail Director | DtxdF" /><meta name="twitter:card" content="summary"/>
+
+    <meta name="description" content="How to Install Gitea on FreeBSD Using AppJail Director" />
+    <meta name="twitter:description" content="How to Install Gitea on FreeBSD Using AppJail Director "/>
+    <meta itemprop="description" content=" How to Install Gitea on FreeBSD Using AppJail Director "/>
+    <meta property="og:description" content=" How to Install Gitea on FreeBSD Using AppJail Director " />
+
+    
+
+<meta property="og:type" content="article" />
+<meta property="article:publisher" content="DtxdF" />
+<meta property="og:article:published_time" content=2023-12-22T19:02:47-0400 />
+<meta property="article:published_time" content=2023-12-22T19:02:47-0400 />
+
+
+
+
+
+<script defer type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "headline": "How to Install Gitea on FreeBSD Using Appjail Director",
+    "author": {
+      "@type": "Person",
+      "name": "DtxdF"
+    },
+    "datePublished": "2023-12-22",
+    "description": "How to Install Gitea on FreeBSD Using AppJail Director",
+    "wordCount":  1178 ,
+    "mainEntityOfPage": "True",
+    "dateModified": "2023-12-22",
+    "publisher": {
+      "@type": "Organization",
+      "name": "DtxdF",
+      "logo": {
+        "@type": "imageObject",
+        "url": "https:\/\/dtxdf.github.io\/favicon.ico"
+      }
+    }
+  }
+</script>
+
+
+
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    
+    <link rel="stylesheet" href="/sass/main.min.ab99ff095f832511e24ffb2fba2b51ad473b2f7e9301d674eba2c6c3a6e8bd81.css">
+    
+</head>
+    
+    <script>
+        (function() {
+            const colorSchemeKey = 'ThemeColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'ThemeColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.userColorScheme = 'dark';
+        } else {
+            document.documentElement.dataset.userColorScheme = 'light';
+        }
+    })();
+</script>
+
+
+    <body class="dark">
+        <nav class="navbar">
+    <div class="container">
+        <div class="flex">
+            <div>
+                <a class="brand" href="/">
+                    
+                    <span class="emoji">
+                        Blog |
+                    </span>
+                    
+                    
+                    DtxdF
+                    </a>
+            </div>
+            <div class="flex">
+                
+                <a href="/articles/">Articles</a>
+                
+                
+                    <button id="dark-mode-button">
+                    <svg class="light" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1em" height="1em" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 36 36"><path fill="#FFD983" d="M30.312.776C32 19 20 32 .776 30.312c8.199 7.717 21.091 7.588 29.107-.429C37.9 21.867 38.03 8.975 30.312.776z"/><path d="M30.705 15.915a1.163 1.163 0 1 0 1.643 1.641a1.163 1.163 0 0 0-1.643-1.641zm-16.022 14.38a1.74 1.74 0 0 0 0 2.465a1.742 1.742 0 1 0 0-2.465zm13.968-2.147a2.904 2.904 0 0 1-4.108 0a2.902 2.902 0 0 1 0-4.107a2.902 2.902 0 0 1 4.108 0a2.902 2.902 0 0 1 0 4.107z" fill="#FFCC4D"/><rect x="0" y="0" width="36" height="36" fill="rgba(0, 0, 0, 0)" /></svg>
+                    <svg class="dark" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1em" height="1em" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 36 36"><path fill="#FFD983" d="M16 2s0-2 2-2s2 2 2 2v2s0 2-2 2s-2-2-2-2V2zm18 14s2 0 2 2s-2 2-2 2h-2s-2 0-2-2s2-2 2-2h2zM4 16s2 0 2 2s-2 2-2 2H2s-2 0-2-2s2-2 2-2h2zm5.121-8.707s1.414 1.414 0 2.828s-2.828 0-2.828 0L4.878 8.708s-1.414-1.414 0-2.829c1.415-1.414 2.829 0 2.829 0l1.414 1.414zm21 21s1.414 1.414 0 2.828s-2.828 0-2.828 0l-1.414-1.414s-1.414-1.414 0-2.828s2.828 0 2.828 0l1.414 1.414zm-.413-18.172s-1.414 1.414-2.828 0s0-2.828 0-2.828l1.414-1.414s1.414-1.414 2.828 0s0 2.828 0 2.828l-1.414 1.414zm-21 21s-1.414 1.414-2.828 0s0-2.828 0-2.828l1.414-1.414s1.414-1.414 2.828 0s0 2.828 0 2.828l-1.414 1.414zM16 32s0-2 2-2s2 2 2 2v2s0 2-2 2s-2-2-2-2v-2z"/><circle fill="#FFD983" cx="18" cy="18" r="10"/><rect x="0" y="0" width="36" height="36" fill="rgba(0, 0, 0, 0)" /></svg>
+                    </button>
+                
+            </div>
+            </div>
+    </div>
+</nav>
+
+        <main>
+            
+<div class="container">
+    <article>
+        <header class="article-header">
+            <div class="thumb">
+                <div>
+                    <h1>How to Install Gitea on FreeBSD Using Appjail Director</h1>
+                    <div class="post-meta">
+                        <div>
+                            
+                            
+                              
+                            
+                            By DtxdF | <time>December 22, 2023</time>
+                            | 6 minutes
+                        </div>
+                        <div class="tags">
+                            
+                            <a href="/tags/gitea/">gitea</a>
+                            
+                            <a href="/tags/adminerevo/">adminerevo</a>
+                            
+                            <a href="/tags/postgres/">postgres</a>
+                            
+                            <a href="/tags/postgresql/">postgresql</a>
+                            
+                            <a href="/tags/sql/">sql</a>
+                            
+                            <a href="/tags/database/">database</a>
+                            
+                            <a href="/tags/databases/">databases</a>
+                            
+                            <a href="/tags/appjail/">appjail</a>
+                            
+                            <a href="/tags/appjail-director/">appjail-director</a>
+                            
+                            <a href="/tags/jail/">jail</a>
+                            
+                            <a href="/tags/jails/">jails</a>
+                            
+                            <a href="/tags/freebsd/">freebsd</a>
+                            
+                            <a href="/tags/container/">container</a>
+                            
+                            <a href="/tags/containers/">containers</a>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </article>
+
+    <div class="article-post">
+    <p align="center">
+    <img src="https://i.imgur.com/zNG2I4j.jpeg" width="80%" height="auto">
+</p>
+<p>Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but there is an open source project, self-hosted, with so many features that can be installed in a few minutes and the best part is that we can install it on FreeBSD. The project is called Gitea, which is a software for hosting our projects using Git. It has other collaborative features such as bug tracking, code review, continuous integration, kanban boards, tickets and wikis.</p>
+<p>In this tutorial we will install <a href="https://github.com/AppJail-makejails/gitea">Gitea</a> on FreeBSD using <a href="https://github.com/DtxdF/director">AppJail Director</a> and <a href="https://github.com/AppJail-makejails/postgres">PostgreSQL</a> as our database backend.</p>
+<h2 id="pre-steps">
+    <a href="#pre-steps" class="anchor">
+        <svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+            <path fill-rule="evenodd"
+                d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+            </path>
+        </svg>
+    </a>
+    Pre-Steps
+</h2>
+<p>In my system I have the following configuration:</p>
+<p><strong>/etc/rc.conf</strong> (<strong>Only options assumed by this article</strong>):</p>
+<pre tabindex="0"><code># AppJail
+appjail_enable=&#34;YES&#34;
+appjail_dns_enable=&#34;YES&#34;
+# Recommended if your IP address changes, so that we can seamlessly use the 
+# following IP in our jails.
+ifconfig_tap0_name=&#34;ajdns&#34;
+ifconfig_ajdns=&#34;inet 172.0.0.1/32&#34;
+# DNSMasq
+dnsmasq_enable=&#34;YES&#34;
+dnsmasq_conf=&#34;/usr/local/share/appjail/files/dnsmasq.conf&#34;
+</code></pre><p><strong>/usr/local/etc/appjail/appjail.conf</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="nv">EXT_IF</span><span class="o">=</span>jext
+</span></span><span class="line"><span class="cl"><span class="nv">ON_IF</span><span class="o">=</span>jext
+</span></span><span class="line"><span class="cl"><span class="nv">FREEBSD_VERSION</span><span class="o">=</span>14.0-RELEASE
+</span></span><span class="line"><span class="cl"><span class="nv">FREEBSD_ARCH</span><span class="o">=</span>amd64
+</span></span><span class="line"><span class="cl"><span class="nv">IMAGE_ARCH</span><span class="o">=</span>amd64
+</span></span><span class="line"><span class="cl"><span class="nv">ENABLE_DEBUG</span><span class="o">=</span><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ENABLE_ZFS</span><span class="o">=</span><span class="m">1</span>
+</span></span><span class="line"><span class="cl"><span class="nv">SHORTEN_DOMAIN_NAMES</span><span class="o">=</span><span class="m">1</span>
+</span></span><span class="line"><span class="cl"><span class="nv">DEFAULT_RESOLV_CONF</span><span class="o">=</span>/usr/local/etc/appjail/resolv.conf
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>/usr/local/etc/appjail/resolv.conf</strong>:</p>
+<pre tabindex="0"><code>nameserver 172.0.0.1
+</code></pre><p><strong>Console Output</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> service appjail-dns status
+</span></span><span class="line"><span class="cl"><span class="go">appjail_dns is running as pid 97063.
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> service dnsmasq status
+</span></span><span class="line"><span class="cl"><span class="go">dnsmasq is running as pid 98251.
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> freebsd-version
+</span></span><span class="line"><span class="cl"><span class="go">14.0-RELEASE-p4
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> uname -r
+</span></span><span class="line"><span class="cl"><span class="go">14.0-RELEASE-p4
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> appjail version
+</span></span><span class="line"><span class="cl"><span class="go">3.0.0.20231220+9468250a2fb7e6f6e6f63a89eb0892e325d1cf83
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> appjail-director --version
+</span></span><span class="line"><span class="cl"><span class="go">appjail-director, version 0.7.0
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> zfs list zroot
+</span></span><span class="line"><span class="cl"><span class="go">NAME    USED  AVAIL  REFER  MOUNTPOINT
+</span></span></span><span class="line"><span class="cl"><span class="go">zroot  72.1G   531G    24K  none
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> ifconfig ajdns
+</span></span><span class="line"><span class="cl"><span class="go">ajdns: flags=8843&lt;UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST&gt; metric 0 mtu 1500
+</span></span></span><span class="line"><span class="cl"><span class="go">        options=80000&lt;LINKSTATE&gt;
+</span></span></span><span class="line"><span class="cl"><span class="go">        ether 58:9c:fc:10:8e:0c
+</span></span></span><span class="line"><span class="cl"><span class="go">        inet 172.0.0.1 netmask 0xffffffff broadcast 172.0.0.1
+</span></span></span><span class="line"><span class="cl"><span class="go">        groups: tap
+</span></span></span><span class="line"><span class="cl"><span class="go">        media: Ethernet 1000baseT &lt;full-duplex&gt;
+</span></span></span><span class="line"><span class="cl"><span class="go">        status: no carrier
+</span></span></span><span class="line"><span class="cl"><span class="go">        nd6 options=29&lt;PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL&gt;
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> ifconfig jext
+</span></span><span class="line"><span class="cl"><span class="go">jext: flags=1008843&lt;UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST,LOWER_UP&gt; metric 0 mtu 1500
+</span></span></span><span class="line"><span class="cl"><span class="go">        options=4e524bb&lt;RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,JUMBO_MTU,VLAN_HWCSUM,LRO,WOL_MAGIC,VLAN_HWFILTER,VLAN_HWTSO,RXCSUM_IPV6,TXCSUM_IPV6,HWSTATS,MEXTPG&gt;
+</span></span></span><span class="line"><span class="cl"><span class="go">        ether 00:1b:24:e0:6d:a3
+</span></span></span><span class="line"><span class="cl"><span class="go">        inet 192.168.1.105 netmask 0xffffff00 broadcast 192.168.1.255
+</span></span></span><span class="line"><span class="cl"><span class="go">        media: Ethernet autoselect (100baseTX &lt;full-duplex&gt;)
+</span></span></span><span class="line"><span class="cl"><span class="go">        status: active
+</span></span></span><span class="line"><span class="cl"><span class="go">        nd6 options=29&lt;PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL&gt;
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>I use the development version of AppJail, so remember the version and the commit when testing AppJail.</p>
+<style type="text/css">.notice{--root-color:#444;--root-background:#eff;--title-color:#fff;--title-background:#7bd;--warning-title:#c33;--warning-content:#fee;--info-title:#fb7;--info-content:#fec;--note-title:#6be;--note-content:#e7f2fa;--tip-title:#5a5;--tip-content:#efe}@media (prefers-color-scheme:dark){.notice{--root-color:#ddd;--root-background:#eff;--title-color:#fff;--title-background:#7bd;--warning-title:#800;--warning-content:#400;--info-title:#a50;--info-content:#420;--note-title:#069;--note-content:#023;--tip-title:#363;--tip-content:#121}}body.dark .notice{--root-color:#ddd;--root-background:#eff;--title-color:#fff;--title-background:#7bd;--warning-title:#800;--warning-content:#400;--info-title:#a50;--info-content:#420;--note-title:#069;--note-content:#023;--tip-title:#363;--tip-content:#121}.notice{padding:18px;line-height:24px;margin-bottom:24px;border-radius:4px;color:var(--root-color);background:var(--root-background)}.notice p:last-child{margin-bottom:0}.notice-title{margin:-18px -18px 12px;padding:4px 18px;border-radius:4px 4px 0 0;font-weight:700;color:var(--title-color);background:var(--title-background)}.notice.warning .notice-title{background:var(--warning-title)}.notice.warning{background:var(--warning-content)}.notice.info .notice-title{background:var(--info-title)}.notice.info{background:var(--info-content)}.notice.note .notice-title{background:var(--note-title)}.notice.note{background:var(--note-content)}.notice.tip .notice-title{background:var(--tip-title)}.notice.tip{background:var(--tip-content)}.icon-notice{display:inline-flex;align-self:center;margin-right:8px}.icon-notice img,.icon-notice svg{height:1em;width:1em;fill:currentColor}.icon-notice img,.icon-notice.baseline svg{top:.125em;position:relative}</style>
+<div><svg width="0" height="0" display="none" xmlns="http://www.w3.org/2000/svg"><symbol id="tip-notice" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet"><path d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"/></symbol><symbol id="note-notice" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet"><path d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zm-248 50c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></symbol><symbol id="warning-notice" viewBox="0 0 576 512" preserveAspectRatio="xMidYMid meet"><path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></symbol><symbol id="info-notice" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet"><path d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z"/></symbol></svg></div><div class="notice note" >
+<p class="first notice-title"><span class="icon-notice baseline"><svg><use href="#note-notice"></use></svg></span>Note</p><p>Keep AppJail and Director synchronized and up-to-date.</p></div>
+
+<p>The virtual network I use is as follows, but nowadays you don&rsquo;t have to worry about it in many cases as AppJail will create it for you:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> appjail network list
+</span></span><span class="line"><span class="cl"><span class="go">NAME   NETWORK   CIDR  BROADCAST      GATEWAY   MINADDR   MAXADDR        ADDRESSES  DESCRIPTION
+</span></span></span><span class="line"><span class="cl"><span class="go">ajnet  10.0.0.0  10    10.63.255.255  10.0.0.1  10.0.0.1  10.63.255.254  4194302    AppJail network
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>If you need more details on how to set up the above configuration, please refer to the AppJail documentation:</p>
+<ul>
+<li><a href="https://appjail.readthedocs.io/en/latest/getting-started/">Getting Started</a></li>
+<li><a href="https://appjail.readthedocs.io/en/latest/configure/">Configuring</a></li>
+<li><a href="https://appjail.readthedocs.io/en/latest/networking/virtual-networks/intro/">Introduction to Virtual Networks</a></li>
+<li><a href="https://appjail.readthedocs.io/en/latest/networking/DNS/">DNS</a></li>
+</ul>
+<h2 id="gitea-configuration">
+    <a href="#gitea-configuration" class="anchor">
+        <svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+            <path fill-rule="evenodd"
+                d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+            </path>
+        </svg>
+    </a>
+    Gitea Configuration
+</h2>
+<p>As described in <a href="https://github.com/AppJail-makejails/gitea#basic-usage">AppJail-makejails/gitea#basic-usage</a>, we need to pass environment variables as follows:</p>
+<ol>
+<li>Environment variables must have the form:
+<code>GITEA__SECTION_NAME__KEY_NAME</code>.</li>
+<li><code>SECTION</code> and <code>KEY_NAME</code> must be in uppercase. They can contain <code>_</code> and numbers.</li>
+<li><code>_0X2E_</code> will be replaced by <code>.</code> and <code>_0X2D_</code> by <code>-</code>.</li>
+<li>To use the blank or global section, use <code>DEFAULT</code> as the section.</li>
+</ol>
+<p>So our Director file ends up as follows:</p>
+<p><strong>appjail-director.yml</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">options</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">virtualnet</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;:&lt;random&gt; default&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">nat</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">gitea</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">gitea</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">makejail</span><span class="p">:</span><span class="w"> </span><span class="l">gh+AppJail-makejails/gitea</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">expose</span><span class="p">:</span><span class="w"> </span><span class="m">3000</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">expose</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;2022:22&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">copydir</span><span class="p">:</span><span class="w"> </span>!<span class="l">ENV &#39;${PWD}/gitea/files&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l">/etc/rc.conf.local</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">arguments</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">gitea_tag</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;14.0&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__DATABASE__DB_TYPE</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;postgres&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__DATABASE__HOST</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea-postgres:5432&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__DATABASE__NAME</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__DATABASE__USER</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__DATABASE__PASSWD</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__SERVER__SSH_PORT</span><span class="p">:</span><span class="w"> </span><span class="m">2022</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__SERVER__DOMAIN</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;192.168.1.105&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">GITEA__DEFAULT__APP_NAME</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Welcome to my git server!&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">gitea-db</span><span class="p">:</span><span class="w"> </span><span class="l">gitea-db</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">gitea-git</span><span class="p">:</span><span class="w"> </span><span class="l">gitea-git</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">db</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">gitea-postgres</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">makejail</span><span class="p">:</span><span class="w"> </span><span class="l">gh+AppJail-makejails/postgres</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">template</span><span class="p">:</span><span class="w"> </span>!<span class="l">ENV &#39;${PWD}/postgres/template.conf&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">arguments</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">postgres_tag</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;14.0-16&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">POSTGRES_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">POSTGRES_USER</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">POSTGRES_DB</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;gitea&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">pg-done</span><span class="p">:</span><span class="w"> </span><span class="l">pg-done</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">pg-data</span><span class="p">:</span><span class="w"> </span><span class="l">pg-data</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">default_volume_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;&lt;volumefs&gt;&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">gitea-git</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="l">.volumes/gitea/git</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">gitea-db</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="l">.volumes/gitea/db</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">pg-data</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="l">.volumes/postgres/data</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">pg-done</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="l">.volumes/postgres/done</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>.env</strong>:</p>
+<pre tabindex="0"><code>DIRECTOR_PROJECT=gitea
+</code></pre><p><strong>postgres/template.conf</strong>:</p>
+<pre tabindex="0"><code>exec.start: &#34;/bin/sh /etc/rc&#34;
+exec.stop: &#34;/bin/sh /etc/rc.shutdown jail&#34;
+sysvmsg: new
+sysvsem: new
+sysvshm: new
+mount.devfs
+</code></pre><p><strong>gitea/files/etc/rc.conf.local</strong>:</p>
+<pre tabindex="0"><code>sshd_enable=&#34;YES&#34;
+</code></pre><p>There is a lot of tasks that AppJail and Director accomplished for us in a single file that I&rsquo;ll explain in a moment. Now run the project and see the result:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> appjail-director up
+</span></span><span class="line"><span class="cl"><span class="go">appjail-director up
+</span></span></span><span class="line"><span class="cl"><span class="go">Starting Director (project:gitea) ...
+</span></span></span><span class="line"><span class="cl"><span class="go">Creating db (gitea-postgres) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Creating gitea (gitea) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Finished: gitea
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> appjail-director info
+</span></span><span class="line"><span class="cl"><span class="go">gitea:
+</span></span></span><span class="line"><span class="cl"><span class="go"> state: DONE
+</span></span></span><span class="line"><span class="cl"><span class="go"> last log: /root/.director/logs/2023-12-22_21h33m25s
+</span></span></span><span class="line"><span class="cl"><span class="go"> locked: false
+</span></span></span><span class="line"><span class="cl"><span class="go"> services:
+</span></span></span><span class="line"><span class="cl"><span class="go">  + db (gitea-postgres)
+</span></span></span><span class="line"><span class="cl"><span class="go">  + gitea (gitea)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>As you can see it was very easy. I just run <code>appjail-director up</code> and Gitea is deployed. But if you enter the URL <code>http://192.168.1.105:3000</code> on another system, you notice that Gitea does not display anything. Don&rsquo;t worry, Gitea is initializing and performing some initial tasks, check the rc script:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> appjail service jail gitea gitea status
+</span></span><span class="line"><span class="cl"><span class="go">gitea is running as pid 91657.
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>After Gitea is up and running, you can register your account, create a repository and, for example, add your SSH key: click on <code>Profile &amp; Settings &gt; Settings &gt; SSH / GPG Keys</code>.</p>
+<p align="center">
+    <img src="https://i.imgur.com/09f3bs4.png" width="80%" height="auto">
+</p>
+<p align="center"><i>Profile and Settings...</i></p>
+<p align="center">
+    <img src="https://i.imgur.com/9zf97zD.png" width="80%" height="auto">
+</p>
+<p align="center"><i>SSH / GPG Keys</i></p>
+<h2 id="ephemeral-concept">
+    <a href="#ephemeral-concept" class="anchor">
+        <svg class="icon" aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16">
+            <path fill-rule="evenodd"
+                d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+            </path>
+        </svg>
+    </a>
+    Ephemeral Concept
+</h2>
+<p>From the Director&rsquo;s <a href="https://github.com/DtxdF/director#ephemeral-concept">home page</a>:</p>
+<blockquote>
+<p>Director treats each jail as ephemeral. This does not mean that your jails will not persist after you stop them or your system restarts, what it means is that Director assumes that it is safe to destroy the jails since you have clearly separated the data that needs to persist or you do not need such data to persist.</p>
+</blockquote>
+<p>Even if our jails are some type of &ldquo;Stateful jails&rdquo;, this does not mean that we can&rsquo;t use them as &ldquo;Ephemeral jails&rdquo;. The idea of having ephemeral jails is very simple, but it has many advantages that are probably better described in another article: data is separated into two types, data that needs to persist and data that does not need to persist. We have already separated the data that needs to persist so if we do the following:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> appjail-director down -d
+</span></span><span class="line"><span class="cl"><span class="go">Starting Director (project:gitea) ...
+</span></span></span><span class="line"><span class="cl"><span class="go">Stopping gitea (gitea) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Destroying gitea (gitea) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Stopping db (gitea-postgres) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Destroying db (gitea-postgres) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Destroying gitea ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> appjail-director info
+</span></span><span class="line"><span class="cl"><span class="go">gitea: Project not found.
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p align="center">
+    <img src="https://i.imgur.com/Z8Kanri.jpeg" width="80%" height="auto">
+</p>
+<p align="center"><i>Our project is gone!</i></p>
+<p>Don&rsquo;t worry, this is what the volumes solve:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> tree -L <span class="m">2</span> .volumes
+</span></span><span class="line"><span class="cl"><span class="go">.volumes
+</span></span></span><span class="line"><span class="cl"><span class="go">├── gitea
+</span></span></span><span class="line"><span class="cl"><span class="go">│   ├── db
+</span></span></span><span class="line"><span class="cl"><span class="go">│   └── git
+</span></span></span><span class="line"><span class="cl"><span class="go">└── postgres
+</span></span></span><span class="line"><span class="cl"><span class="go">    ├── data
+</span></span></span><span class="line"><span class="cl"><span class="go">    └── done
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="go">7 directories, 0 files
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>So we can make our project again:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> appjail-director up
+</span></span><span class="line"><span class="cl"><span class="go">Starting Director (project:gitea) ...
+</span></span></span><span class="line"><span class="cl"><span class="go">Creating db (gitea-postgres) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Creating gitea (gitea) ... Done.
+</span></span></span><span class="line"><span class="cl"><span class="go">Finished: gitea
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> appjail-director info
+</span></span><span class="line"><span class="cl"><span class="go">gitea:
+</span></span></span><span class="line"><span class="cl"><span class="go"> state: DONE
+</span></span></span><span class="line"><span class="cl"><span class="go"> last log: /root/.director/logs/2023-12-22_21h51m23s
+</span></span></span><span class="line"><span class="cl"><span class="go"> locked: false
+</span></span></span><span class="line"><span class="cl"><span class="go"> services:
+</span></span></span><span class="line"><span class="cl"><span class="go">  + db (gitea-postgres)
+</span></span></span><span class="line"><span class="cl"><span class="go">  + gitea (gitea)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>And our SSH keys should persist:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> cat .volumes/gitea/git/.ssh/authorized_keys
+</span></span><span class="line"><span class="cl"><span class="gp">#</span> gitea public key
+</span></span><span class="line"><span class="cl"><span class="go">command=&#34;/usr/local/sbin/gitea --config=/usr/local/etc/gitea/conf/app.ini serv key-1&#34;,no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty,no-user-rc,restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG8B02AxX4CBRHNQHAwQIZUE454ZixeqSkAG7b9OOMxa dtxdf@dtxdf-laptop
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+</div>
+
+<div class="container">
+    
+    <nav class="flex container suggested">
+        
+        <a rel="prev" href="/post/install-wordpress-with-appjail-director/" title="Previous post (older)">
+            <span>Previous</span>
+            Install WordPress With Appjail Director
+            </a>
+        
+        
+        
+    </nav>
+    
+</div>
+ 
+<div class="container">
+    
+</div>
+
+</main>
+
+
+        </main>
+        <footer class="footer flex">
+    <section class="container">
+        <nav class="footer-links">
+            
+            <a href="/index.xml">RSS</a>
+            
+            <a href="https://underc0de.org/foro/profile/?area=showposts;sa=topics;u=71723">Underc0de</a>
+            
+        </nav>
+
+        
+    </section>
+    <script defer src="/ts/features.706a523ba43e6d0427c7fdf2b9d05dbd0920d3f12942b453690b495cb2522743.js" 
+    data-enable-footnotes="true"
+    ></script>
+</footer>
+
+    </body>
+</html>

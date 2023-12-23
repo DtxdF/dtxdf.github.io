@@ -1,3 +1,37 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>jails on DtxdF</title><link>https://dtxdf.github.io/tags/jails/</link><description>Recent content in jails on DtxdF</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 22 Aug 2023 15:36:00 -0400</lastBuildDate><atom:link href="https://dtxdf.github.io/tags/jails/index.xml" rel="self" type="application/rss+xml"/><item><title>Install WordPress With Appjail Director</title><link>https://dtxdf.github.io/post/install-wordpress-with-appjail-director/</link><pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate><guid>https://dtxdf.github.io/post/install-wordpress-with-appjail-director/</guid><description>What Are AppJail and AppJail Director? AppJail is a framework that provides preconfigured and self-contained applications, frameworks and software stacks, such as WordPress. Using this tool we will have a package installed inside a jail, a lightweight and isolated environment with any custom configuration our software needs. See also.
-AppJail Director is a complementary tool that help us link individual jails so they can work together using an easy-to-learn YAML file.</description></item><item><title>Python With Appjail | FastAPI</title><link>https://dtxdf.github.io/post/python-with-appjail-fastapi/</link><pubDate>Sat, 04 Mar 2023 11:55:38 -0400</pubDate><guid>https://dtxdf.github.io/post/python-with-appjail-fastapi/</guid><description>In any development project, you usually have to worry about many components: databases, dependencies, configurations, network settings and so on. Things can get too complicated when you need to transfer your project to another colleague or, even worse, transfer the project to a production environment, and very bad things can happen&amp;hellip; Those problems has been solved by some useful tools, such as those for creating and managing containers.
-AppJail is the framework we will use to create a container with our project: an API using the FastAPI framework.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>jails on DtxdF</title>
+    <link>https://dtxdf.github.io/tags/jails/</link>
+    <description>Recent content in jails on DtxdF</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 22 Dec 2023 19:02:47 -0400</lastBuildDate>
+    <atom:link href="https://dtxdf.github.io/tags/jails/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>How to Install Gitea on FreeBSD Using Appjail Director</title>
+      <link>https://dtxdf.github.io/post/how-to-install-gitea-on-freebsd-using-appjail-director/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/post/how-to-install-gitea-on-freebsd-using-appjail-director/</guid>
+      <description>Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but there is an open source project, self-hosted, with so many features that can be installed in a few minutes and the best part is that we can install it on FreeBSD. The project is called Gitea, which is a software for hosting our projects using Git. It has other collaborative features such as bug tracking, code review, continuous integration, kanban boards, tickets and wikis.</description>
+    </item>
+    <item>
+      <title>Install WordPress With Appjail Director</title>
+      <link>https://dtxdf.github.io/post/install-wordpress-with-appjail-director/</link>
+      <pubDate>Tue, 22 Aug 2023 15:36:00 -0400</pubDate>
+      <guid>https://dtxdf.github.io/post/install-wordpress-with-appjail-director/</guid>
+      <description>Note
+AppJail and Director have evolved to perform the following steps with less effort. Please keep them up-to-date.
+What Are AppJail and AppJail Director? AppJail is a framework that provides preconfigured and self-contained applications, frameworks and software stacks, such as WordPress. Using this tool we will have a package installed inside a jail, a lightweight and isolated environment with any custom configuration our software needs. See also.
+AppJail Director is a complementary tool that help us link individual jails so they can work together using an easy-to-learn YAML file.</description>
+    </item>
+    <item>
+      <title>Python With Appjail | FastAPI</title>
+      <link>https://dtxdf.github.io/post/python-with-appjail-fastapi/</link>
+      <pubDate>Sat, 04 Mar 2023 11:55:38 -0400</pubDate>
+      <guid>https://dtxdf.github.io/post/python-with-appjail-fastapi/</guid>
+      <description>In any development project, you usually have to worry about many components: databases, dependencies, configurations, network settings and so on. Things can get too complicated when you need to transfer your project to another colleague or, even worse, transfer the project to a production environment, and very bad things can happen&amp;hellip; Those problems has been solved by some useful tools, such as those for creating and managing containers.
+AppJail is the framework we will use to create a container with our project: an API using the FastAPI framework.</description>
+    </item>
+  </channel>
+</rss>

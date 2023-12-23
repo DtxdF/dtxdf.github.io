@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>postgres on DtxdF</title>
+    <link>https://dtxdf.github.io/tags/postgres/</link>
+    <description>Recent content in postgres on DtxdF</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 22 Dec 2023 19:02:47 -0400</lastBuildDate>
+    <atom:link href="https://dtxdf.github.io/tags/postgres/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>How to Install Gitea on FreeBSD Using Appjail Director</title>
+      <link>https://dtxdf.github.io/post/how-to-install-gitea-on-freebsd-using-appjail-director/</link>
+      <pubDate>Fri, 22 Dec 2023 19:02:47 -0400</pubDate>
+      <guid>https://dtxdf.github.io/post/how-to-install-gitea-on-freebsd-using-appjail-director/</guid>
+      <description>Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but there is an open source project, self-hosted, with so many features that can be installed in a few minutes and the best part is that we can install it on FreeBSD. The project is called Gitea, which is a software for hosting our projects using Git. It has other collaborative features such as bug tracking, code review, continuous integration, kanban boards, tickets and wikis.</description>
+    </item>
+  </channel>
+</rss>
