@@ -44,7 +44,7 @@
     },
     "datePublished": "2023-12-22",
     "description": "How to Install Gitea on FreeBSD Using AppJail Director",
-    "wordCount":  1181 ,
+    "wordCount":  1193 ,
     "mainEntityOfPage": "True",
     "dateModified": "2023-12-22",
     "publisher": {
@@ -202,6 +202,8 @@ ifconfig_ajdns=&#34;inet 172.0.0.1/32&#34;
 # DNSMasq
 dnsmasq_enable=&#34;YES&#34;
 dnsmasq_conf=&#34;/usr/local/share/appjail/files/dnsmasq.conf&#34;
+# Enable IP forwarding.
+gateway_enable=&#34;YES&#34;
 </code></pre><p><strong>/usr/local/etc/appjail/appjail.conf</strong>:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -268,12 +270,16 @@ rdr-anchor &#34;appjail-rdr/*&#34;
 </span><span class="lnt">30
 </span><span class="lnt">31
 </span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">#</span> service appjail-dns status
 </span></span><span class="line"><span class="cl"><span class="go">appjail_dns is running as pid 97063.
 </span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> service dnsmasq status
 </span></span><span class="line"><span class="cl"><span class="go">dnsmasq is running as pid 98251.
+</span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> sysctl net.inet.ip.forwarding
+</span></span><span class="line"><span class="cl"><span class="go">net.inet.ip.forwarding: 1
 </span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> freebsd-version
 </span></span><span class="line"><span class="cl"><span class="go">14.0-RELEASE-p4
 </span></span></span><span class="line"><span class="cl"><span class="go"></span><span class="gp">#</span> uname -r
