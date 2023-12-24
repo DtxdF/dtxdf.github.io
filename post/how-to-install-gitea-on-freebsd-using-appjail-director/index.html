@@ -44,7 +44,7 @@
     },
     "datePublished": "2023-12-22",
     "description": "How to Install Gitea on FreeBSD Using AppJail Director",
-    "wordCount":  1174 ,
+    "wordCount":  1181 ,
     "mainEntityOfPage": "True",
     "dateModified": "2023-12-22",
     "publisher": {
@@ -229,6 +229,10 @@ dnsmasq_conf=&#34;/usr/local/share/appjail/files/dnsmasq.conf&#34;
 </div>
 </div><p><strong>/usr/local/etc/appjail/resolv.conf</strong>:</p>
 <pre tabindex="0"><code>nameserver 172.0.0.1
+</code></pre><p><strong>/etc/pf.conf</strong>:</p>
+<pre tabindex="0"><code>nat-anchor &#39;appjail-nat/jail/*&#39;
+nat-anchor &#34;appjail-nat/network/*&#34;
+rdr-anchor &#34;appjail-rdr/*&#34;
 </code></pre><p><strong>Console Output</strong>:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">

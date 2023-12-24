@@ -67,6 +67,10 @@ dnsmasq_conf=&amp;#34;/usr/local/share/appjail/files/dnsmasq.conf&amp;#34;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;&lt;strong&gt;/usr/local/etc/appjail/resolv.conf&lt;/strong&gt;:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;nameserver 172.0.0.1
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;/etc/pf.conf&lt;/strong&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;nat-anchor &amp;#39;appjail-nat/jail/*&amp;#39;
+nat-anchor &amp;#34;appjail-nat/network/*&amp;#34;
+rdr-anchor &amp;#34;appjail-rdr/*&amp;#34;
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;Console Output&lt;/strong&gt;:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
