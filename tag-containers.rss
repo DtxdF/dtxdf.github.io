@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Otro blog rand(3)</title><link></link><description>Desde UTC-04:00 tecleando a lo loco</description><pubDate>Fri, 22 Dec 2023 00:00:00 GMT</pubDate><lastBuildDate>Sun, 13 Apr 2025 22:53:03 GMT</lastBuildDate><generator>marmite</generator><item><title>How to Install Gitea on FreeBSD Using AppJail Director</title><link>/how-to-install-gitea-on-freebsd-using-appjail-director.html</link><category>gitea</category><category>appjail</category><category>appjail-director</category><category>jails</category><category>freebsd</category><category>containers</category><guid>/how-to-install-gitea-on-freebsd-using-appjail-director.html</guid><pubDate>Fri, 22 Dec 2023 00:00:00 GMT</pubDate><source url="">tag-containers</source><content:encoded><![CDATA[<p><figure><img src="media/zNG2I4j.jpeg" alt="" /></figure></p>
+<p>Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but there is an open source project, self-hosted, with so many features that can be installed in a few minutes and the best part is that we can install it on FreeBSD. The project is called Gitea, which is a software for hosting our projects using Git. It has other collaborative features such as bug tracking, code review, continuous integration, kanban boards, tickets and wikis.</p>
+<p>In this tutorial we will install Gitea and PostgreSQL on FreeBSD using AppJail Director.</p>
+<h2><a href="#pre-steps" aria-hidden="true" class="anchor" id="pre-steps"></a>Pre-Steps</h2>
+<p>In my system I have the following configuration:</p>
+<p><strong>/etc/rc.conf (Only options assumed by this article)</strong>:</p>
+<pre><code># AppJail
+appjail_enable=&quot;YES&quot;
+appjail_dns_enable=&quot;YES&quot;
+# Recommended if your IP address changes, so that we can seamlessly use the 
+# following IP in our jails.
+ifconfig_tap0_name=&quot;ajdns&quot;
+ifconfig_ajdns=&quot;inet 172.0.0.1/32&quot;
+# DNSMasq
+dnsmasq_enable=&quot;YES&quot;
+dnsmasq_conf=&quot;/usr/local/share/appjail/files/dnsmasq.conf&quot;
+# Enable IP forwarding.
+gateway_enable=&quot;YES&quot;
+</code></pre>
+<p><strong>/usr/local/etc/appjail/appjail.conf</strong>:</p>
+<pre><code class="language-sh">EXT_IF=jext
+ON_IF=jext
+FREEBSD_VERSION=14.0-RELEASE
+FREEBSD_ARCH=amd64
+IMAGE_ARCH=amd64
+ENABLE_DEBUG=0
+ENABLE_ZFS=1
+SHORTEN_DOMAIN_NAMES=1
+DEFAULT_RESOLV_CONF=/usr/local/etc/appjail/resolv.conf
+</code></pre>
+<p><strong>/usr/local/etc/appjail/resolv.conf</strong>:</p>
+<pre><code>nameserver 172.0.0.1
+</code></pre>
+<p><strong>/etc/pf.conf</strong>:</p>
+<pre><code>nat-anchor 'appjail-nat/jail/*'
+nat-anchor &quot;appjail-nat/network/*&quot;
+rdr-anchor &quot;appjail-rdr/*&quot;
+</code></pre>
+<p><strong>Console Output</strong>:</p>
+<pre><code class="language-console"># service appjail-dns status
+appjail_dns is running as pid 97063.
+# service dnsmasq status
+dnsmasq is running as pid 98251.
+# sysctl net.inet.ip.forwarding
+net.inet.ip.forwarding: 1
+# freebsd-version
+14.0-RELEASE-p4
+# uname -r
+14.0-RELEASE-p4
+# appjail version
+3.0.0.20231220+9468250a2fb7e6f6e6f63a89eb0892e325d1cf83
+# appjail-director --version
+appjail-director, version 0.7.0
+# zfs list zroot
+NAME    USED  AVAIL  REFER  MOUNTPOINT
+zroot  72.1G   531G    24K  none
+# ifconfig ajdns
+ajdns: flags=8843&lt;UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST&gt; metric 0 mtu 1500
+        options=80000&lt;LINKSTATE&gt;
+        ether 58:9c:fc:10:8e:0c
+        inet 172.0.0.1 netmask 0xffffffff broadcast 172.0.0.1
+        groups: tap
+        media: Ethernet 1000baseT &lt;full-duplex&gt;
+        status: no carrier
+        nd6 options=29&lt;PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL&gt;
+# ifconfig jext
+jext: flags=1008843&lt;UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST,LOWER_UP&gt; metric 0 mtu 1500
+        options=4e524bb&lt;RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,JUMBO_MTU,VLAN_HWCSUM,LRO,WOL_MAGIC,VLAN_HWFILTER,VLAN_HWTSO,RXCSUM_IPV6,TXCSUM_IPV6,HWSTATS,MEXTPG&gt;
+        ether 00:1b:24:e0:6d:a3
+        inet 192.168.1.105 netmask 0xffffff00 broadcast 192.168.1.255
+        media: Ethernet autoselect (100baseTX &lt;full-duplex&gt;)
+        status: active
+        nd6 options=29&lt;PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL&gt;
+</code></pre>
+<p>I use the development version of AppJail, so remember the version and the commit when testing AppJail.</p>
+<p><strong>Note</strong>: Keep AppJail and Director synchronized and up-to-date.</p>
+<p>The virtual network I use is as follows, but nowadays you don’t have to worry about it in many cases as AppJail will create it for you:</p>
+<pre><code class="language-console"># appjail network list
+NAME   NETWORK   CIDR  BROADCAST      GATEWAY   MINADDR   MAXADDR        ADDRESSES  DESCRIPTION
+ajnet  10.0.0.0  10    10.63.255.255  10.0.0.1  10.0.0.1  10.63.255.254  4194302    AppJail network
+</code></pre>
+<p>If you need more details on how to set up the above configuration, please refer to the AppJail documentation:</p>
+<ul>
+<li><a href="https://appjail.readthedocs.io/en/latest/getting-started/">Getting Started</a></li>
+<li><a href="https://appjail.readthedocs.io/en/latest/configure/">Configuring</a></li>
+<li><a href="https://appjail.readthedocs.io/en/latest/networking/virtual-networks/intro/">Introduction to Virtual Networks</a></li>
+<li><a href="https://appjail.readthedocs.io/en/latest/networking/DNS/">DNS</a></li>
+</ul>
+<h2><a href="#gitea-configuration" aria-hidden="true" class="anchor" id="gitea-configuration"></a>Gitea Configuration</h2>
+<p>As described in <a href="https://github.com/AppJail-makejails/gitea?tab=readme-ov-file#basic-usage">AppJail-makejails/gitea#basic-usage</a>, we need to pass environment variables as follows:</p>
+<ol>
+<li>Environment variables must have the form: <code>GITEA__SECTION_NAME__KEY_NAME</code>.</li>
+<li><code>SECTION</code> and <code>KEY_NAME</code> must be in uppercase. They can contain <code>_</code> and numbers.</li>
+<li><code>_0X2E_</code> will be replaced by <code>.</code> and <code>_0X2D_</code> by <code>-</code>.</li>
+<li>To use the blank or global section, use <code>DEFAULT</code> as the section.</li>
+</ol>
+<p>So our Director file ends up as follows:</p>
+<p><strong>appjail-director.yml</strong>:</p>
+<pre><code class="language-yaml">options:
+  - virtualnet: &quot;:&lt;random&gt; default&quot;
+  - nat:
+
+services:
+  gitea:
+    name: gitea
+    makejail: gh+AppJail-makejails/gitea
+    options:
+      - expose: 3000
+      - expose: '2022:22'
+      - copydir: !ENV '${PWD}/gitea/files'
+      - file: /etc/rc.conf.local
+    arguments:
+      - gitea_tag: '14.0'
+    environment:
+      - GITEA__DATABASE__DB_TYPE: 'postgres'
+      - GITEA__DATABASE__HOST: 'gitea-postgres:5432'
+      - GITEA__DATABASE__NAME: 'gitea'
+      - GITEA__DATABASE__USER: 'gitea'
+      - GITEA__DATABASE__PASSWD: 'gitea'
+      - GITEA__SERVER__SSH_PORT: 2022
+      - GITEA__SERVER__DOMAIN: '192.168.1.105'
+      - GITEA__DEFAULT__APP_NAME: 'Welcome to my git server!'
+    volumes:
+      - gitea-db: gitea-db
+      - gitea-git: gitea-git
+
+  db:
+    name: gitea-postgres
+    makejail: gh+AppJail-makejails/postgres
+    options:
+      - template: !ENV '${PWD}/postgres/template.conf'
+    arguments:
+      - postgres_tag: '14.0-16'
+    environment:
+      - POSTGRES_PASSWORD: 'gitea'
+      - POSTGRES_USER: 'gitea'
+      - POSTGRES_DB: 'gitea'
+    volumes:
+      - pg-done: pg-done
+      - pg-data: pg-data
+
+default_volume_type: '&lt;volumefs&gt;'
+
+volumes:
+  gitea-git:
+    device: .volumes/gitea/git
+  gitea-db:
+    device: .volumes/gitea/db
+  pg-data:
+    device: .volumes/postgres/data
+  pg-done:
+    device: .volumes/postgres/done
+</code></pre>
+<p><strong>.env</strong>:</p>
+<pre><code>DIRECTOR_PROJECT=gitea
+</code></pre>
+<p><strong>postgres/template.conf</strong>:</p>
+<pre><code>exec.start: &quot;/bin/sh /etc/rc&quot;
+exec.stop: &quot;/bin/sh /etc/rc.shutdown jail&quot;
+sysvmsg: new
+sysvsem: new
+sysvshm: new
+mount.devfs
+</code></pre>
+<p><strong>gitea/files/etc/rc.conf.local</strong>:</p>
+<pre><code class="language-sh">sshd_enable=&quot;YES&quot;
+</code></pre>
+<p>There is a lot of tasks that AppJail and Director accomplished for us in a single file that I’ll explain in a moment. Now run the project and see the result:</p>
+<pre><code class="language-console"># appjail-director up
+appjail-director up
+Starting Director (project:gitea) ...
+Creating db (gitea-postgres) ... Done.
+Creating gitea (gitea) ... Done.
+Finished: gitea
+# appjail-director info
+gitea:
+ state: DONE
+ last log: /root/.director/logs/2023-12-22_21h33m25s
+ locked: false
+ services:
+  + db (gitea-postgres)
+  + gitea (gitea)
+</code></pre>
+<p>As you can see it was very easy. I just run <code>appjail-director up</code> and Gitea is deployed. But if you enter the URL <code>http://192.168.1.105:3000</code> on another system, you notice that Gitea does not display anything. Don’t worry, Gitea is initializing and performing some initial tasks, check the rc script:</p>
+<pre><code class="language-console"># appjail service jail gitea gitea status
+gitea is running as pid 91657.
+</code></pre>
+<p>After Gitea is up and running, you can register your account, create a repository and, for example, add your SSH key: click on <code>Profile &amp; Settings &gt; Settings &gt; SSH / GPG Keys</code>.</p>
+<p align="center">
+	<img src="media/09f3bs4.png">
+	<i>Profile and Settings...</i>
+</p>
+<p align="center">
+	<img src="media/9zf97zD.png">
+	<i>SSH / GPG Keys</i>
+</p>
+<h2><a href="#ephemeral-concept" aria-hidden="true" class="anchor" id="ephemeral-concept"></a>Ephemeral Concept</h2>
+<p>From the Director's <a href="https://github.com/DtxdF/director#ephemeral-concept">home page</a>:</p>
+<blockquote>
+<p>Director treats each jail as ephemeral. This does not mean that your jails will not persist after you stop them or your system restarts, what it means is that Director assumes that it is safe to destroy the jails since you have clearly separated the data that needs to persist or you do not need such data to persist.</p>
+</blockquote>
+<p>Even if our jails are some type of “Stateful jails”, this does not mean that we can’t use them as “Ephemeral jails”. The idea of having ephemeral jails is very simple, but it has many advantages that are probably better described in another article: data is separated into two types, data that needs to persist and data that does not need to persist. We have already separated the data that needs to persist so if we do the following:</p>
+<pre><code class="language-console"># appjail-director down -d
+Starting Director (project:gitea) ...
+Stopping gitea (gitea) ... Done.
+Destroying gitea (gitea) ... Done.
+Stopping db (gitea-postgres) ... Done.
+Destroying db (gitea-postgres) ... Done.
+Destroying gitea ... Done.
+# appjail-director info
+gitea: Project not found.
+</code></pre>
+<p align="center">
+	<img src="media/Z8Kanri.jpeg">
+	<i>Our project is gone!</i>
+</p>
+<p>Don’t worry, this is what the volumes solve:</p>
+<pre><code class="language-console"># tree -L 2 .volumes
+.volumes
+├── gitea
+│   ├── db
+│   └── git
+└── postgres
+    ├── data
+    └── done
+
+7 directories, 0 files
+</code></pre>
+<p>So we can make our project again:</p>
+<pre><code class="language-console"># appjail-director up
+Starting Director (project:gitea) ...
+Creating db (gitea-postgres) ... Done.
+Creating gitea (gitea) ... Done.
+Finished: gitea
+# appjail-director info
+gitea:
+ state: DONE
+ last log: /root/.director/logs/2023-12-22_21h51m23s
+ locked: false
+ services:
+  + db (gitea-postgres)
+  + gitea (gitea)
+</code></pre>
+<p>And our SSH keys should persist:</p>
+<pre><code class="language-console"># cat .volumes/gitea/git/.ssh/authorized_keys
+# gitea public key
+command=&quot;/usr/local/sbin/gitea --config=/usr/local/etc/gitea/conf/app.ini serv key-1&quot;,no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty,no-user-rc,restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG8B02AxX4CBRHNQHAwQIZUE454ZixeqSkAG7b9OOMxa dtxdf@dtxdf-laptop
+</code></pre>
+]]></content:encoded></item><item><title>Python With Appjail | FastAPI</title><link>/python-with-appjail-fastapi.html</link><category>python</category><category>appjail</category><category>jails</category><category>freebsd</category><category>containers</category><guid>/python-with-appjail-fastapi.html</guid><pubDate>Sat, 04 Mar 2023 00:00:00 GMT</pubDate><source url="">tag-containers</source><content:encoded><![CDATA[<p>In any development project, you usually have to worry about many components: databases, dependencies, configurations, network settings and so on. Things can get too complicated when you need to transfer your project to another colleague or, even worse, transfer the project to a production environment, and very bad things can happen… Those problems has been solved by some useful tools, such as those for creating and managing containers.</p>
+<p>AppJail is the framework we will use to create a container with our project: an API using the FastAPI framework. By using this tool we ensure that we can share and reproduce our project to guarantee that it will run smoothly with virtually the same environment as on the host. As a bonus, the host will not be affected.</p>
+<h2><a href="#the-project" aria-hidden="true" class="anchor" id="the-project"></a>The project</h2>
+<p>We use the following structure to simplify the development of our project:</p>
+<pre><code class="language-sh">mkdir project/
+mkdir project/app/
+</code></pre>
+<p><strong>Note</strong>: All files mentioned in this document are relative to the <code>project/</code> directory.</p>
+<p>Now we create a <code>app/requirements.txt</code> to put the dependencies that our project needs:</p>
+<pre><code>fastapi[all]
+</code></pre>
+<p><strong>Note</strong>: For simplicitly, we will install FastAPI with optional dependencies and features, but you probably won’t need all of them in a production environment. See documentation for details.</p>
+<p>Our <code>app/main.py</code> is only a few lines long:</p>
+<pre><code class="language-python">from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get(&quot;/&quot;)
+async def root():
+	return {&quot;message&quot;: &quot;Hello world&quot;}
+</code></pre>
+<p>A simple <code>hello world</code> is displayed each time the user makes an HTTP request with the GET method.</p>
+<h2><a href="#the-makejail" aria-hidden="true" class="anchor" id="the-makejail"></a>The Makejail</h2>
+<p>The next step is to create the Makejail.</p>
+<pre><code>INCLUDE gh+AppJail-makejails/python
+</code></pre>
+<p>We have included the Makejail from the centralized repository to install Python.</p>
+<pre><code># Optional, see below for details.
+INCLUDE options/network.makejail
+</code></pre>
+<p>Another Makejail with only the network options we use for this jail. The content is as follows:</p>
+<pre><code>ARG network
+ARG interface=python
+
+OPTION virtualnet=${network}:${interface} default
+OPTION nat
+</code></pre>
+<p>Of course, we need the <code>options/</code> directory beforehand (remember: relative to the <code>project/</code> directory):</p>
+<pre><code class="language-sh">mkdir options/
+</code></pre>
+<p>Another way to achieve the above is to define option by option on the command-line when building the jail as we will see later.</p>
+<pre><code>WORKDIR /app
+COPY app/
+</code></pre>
+<p>Using <code>WORKDIR</code> we create a directory named <code>/app</code> inside the jail. As we have changed the working directory, <code>COPY</code> is affected and the target directory is relative to that directory, so we can omit the second argument and the files in <code>app/</code> directory will be copied from the host to the jail. Remember that the <code>/</code> suffix is for copying all the files, not the directory itself.</p>
+<pre><code>CMD pw useradd -n pyapp -d /app -s /bin/sh
+CMD mkdir -p /app
+CMD chown -R pyapp:pyapp /app
+</code></pre>
+<p>We create a dedicated user named <code>pyapp</code> to run the script with less privileges than <code>root</code>.</p>
+<pre><code>PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-pip
+</code></pre>
+<p><code>devel/py-pip</code> is not installed by default, so we install it. We can install pip explicitly with the corresponding python version, but the Makejail for Python provides some build arguments.</p>
+<pre><code>PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-wheel
+PKG rust
+</code></pre>
+<p><code>lang/rust</code> is required by a FastAPI dependency. It is recommended to install <code>devel/py-wheel</code> when installing python dependencies.</p>
+<pre><code>USER pyapp
+RUN pip install --user -r requirements.txt
+</code></pre>
+<p>We install the dependencies by running <code>pip</code> using the dedicated user.</p>
+<pre><code>STAGE cmd
+
+USER pyapp
+WORKDIR /app
+RUN /app/.local/bin/uvicorn main:app --reload --host 0.0.0.0
+</code></pre>
+<p>The <code>cmd</code> stage is used to run the python script using <code>appjail run</code> as we will se later. The working directory is reset with each stage, so we need to specify it again. <code>USER</code> is also reset for each stage.</p>
+<p>The command <code>uvicorn main:app</code> refers to:</p>
+<ul>
+<li><code>main</code>: the file <code>main.py</code> (the Python ‘module’).</li>
+<li><code>app</code>: the object created inside of <code>main.py</code> with the line <code>app = FastAPI()</code>.</li>
+<li><code>--reload</code>: make the server restart after code changes. Only use for development.</li>
+<li><code>--host</code>: as the default is <code>127.0.0.1</code>, we need to change to the jail’s IP address, but for simplicity, we use <code>0.0.0.0</code> to listen on all IP addresses of all interfaces.</li>
+</ul>
+<p>All of the above instructions in a single file can be seen below:</p>
+<pre><code>INCLUDE gh+AppJail-makejails/python
+# Optional, see below for details.
+INCLUDE options/network.makejail
+
+WORKDIR /app
+COPY app/
+
+CMD pw useradd -n pyapp -d /app -s /bin/sh
+CMD mkdir -p /app
+CMD chown -R pyapp:pyapp /app
+
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-pip
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-wheel
+PKG rust
+
+USER pyapp
+RUN pip install --user -r requirements.txt
+
+STAGE cmd
+
+USER pyapp
+WORKDIR /app
+RUN /app/.local/bin/uvicorn main:app --reload --host 0.0.0.0
+</code></pre>
+<h2><a href="#the-product" aria-hidden="true" class="anchor" id="the-product"></a>The product</h2>
+<p>Since we are going to use a virtual network configuration, we first need to create one:</p>
+<pre><code class="language-console"># appjail network add development 172.0.0.0/10
+# appjail network list
+NAME         NETWORK    CIDR  BROADCAST       GATEWAY    MINADDR    MAXADDR         ADDRESSES  DESCRIPTION
+development  172.0.0.0  10    172.63.255.255  172.0.0.1  172.0.0.1  172.63.255.254  4194302    -
+</code></pre>
+<p>All the requirements have been done correctly, so all we have to do is open a shell and run:</p>
+<pre><code class="language-sh">appjail makejail -j pyapp -- --network development
+</code></pre>
+<p>The command <code>appjail makejail</code> refers to:</p>
+<ul>
+<li><code>-j pyapp</code>: name of the jail. If not defined, a random name is chosen.</li>
+<li><code>--network development</code>: the virtual network to be used.</li>
+</ul>
+<p>As mentioned in previous sections, we can specify option by option on the command-line instead of using <code>options/network.makejail</code>. Of course, remove the instruction that includes that file if you want to use the command-line.</p>
+<pre><code class="language-sh">appjail makejail -j pyapp -o virtualnet=&quot;development:pyapp default&quot; -o nat
+</code></pre>
+<p>Once the above process is finished, we can run the API:</p>
+<pre><code class="language-console"># appjail run pyapp
+INFO:     Will watch for changes in these directories: ['/app']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [93321] using WatchFiles
+INFO:     Started server process [93323]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+</code></pre>
+<p>And we can make an HTTP request but we only need the jail’s IP address.</p>
+<pre><code class="language-console"># appjail jail list -j pyapp
+STATUS  NAME   TYPE  VERSION       PORTS  NETWORK_IP4
+UP      pyapp  thin  13.1-RELEASE  -      172.0.0.2
+# curl -i 'http://172.0.0.2:8000'
+HTTP/1.1 200 OK
+date: Sun, 05 Mar 2023 00:10:07 GMT
+server: uvicorn
+content-length: 25
+content-type: application/json
+
+{&quot;message&quot;:&quot;Hello world&quot;}
+</code></pre>
+<h2><a href="#simplify-your-life" aria-hidden="true" class="anchor" id="simplify-your-life"></a>Simplify your life</h2>
+<p>here is a time when we develop a python project and a dependency requires another dependency to be compiled. This is the case for <code>watchfiles</code> in the FastAPI framework, which requires <code>lang/rust</code> to compile its stuff. This takes a long time depending on your hardware, but there is a simple way to spend less time.</p>
+<p>We can use the precompiled binaries in the FreeBSD repositories if the dependencies are already ported, so we just have to change our Makejail a bit to do this job.</p>
+<pre><code>INCLUDE gh+AppJail-makejails/python
+# Optional, see below for details.
+INCLUDE options/network.makejail
+
+WORKDIR /app
+COPY app/
+
+CMD pw useradd -n pyapp -d /app -s /bin/sh
+CMD mkdir -p /app
+CMD chown -R pyapp:pyapp /app
+
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-fastapi
+PKG py%{PYTHON_MAJOR}%{PYTHON_MINOR}-uvicorn
+
+STAGE cmd
+
+USER pyapp
+WORKDIR /app
+RUN uvicorn main:app --reload --host 0.0.0.0
+</code></pre>
+]]></content:encoded></item></channel></rss>

@@ -7,13 +7,15 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="generator" content="Marmite" />
     
-<meta property="og:title" content="Page not found">
+<meta property="og:title" content="Smart Timeouts">
 
-<meta property="og:description" content=" :/">
+<meta property="og:description" content=" es una feature de Overlord bastante simple, pero que me ha demostrado ser eficaz. Aunque la arquite...">
 
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Otro blog rand(3)">
+
+<meta property="article:published_time" content=" 2025-04-12T00:00:00+00:00">
 
 
 
@@ -23,11 +25,11 @@
     "@type": "BlogPosting",
     "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "/404.html"
+        "@id": "/smart-timeouts.html"
     },
-    "url": "/404.html",
-    "headline": "Page not found",
-    "description": " :/",
+    "url": "/smart-timeouts.html",
+    "headline": "Smart Timeouts",
+    "description": " es una feature de Overlord bastante simple, pero que me ha demostrado ser eficaz. Aunque la arquitectura de Overlord, la cual es un árbol e...",
     
     
     "publisher": {
@@ -38,12 +40,12 @@
             "url": "/"
         }
     },
-    
+    "datePublished": "2025-04-12T00:00:00+00:00"
 }
 </script>
 
 
-    <title>Page not found | Otro blog rand(3)</title>
+    <title>Smart Timeouts | Otro blog rand(3)</title>
     <link rel="stylesheet" type="text/css" href="./static/pico.min.css">
     <link rel="stylesheet" type="text/css" href="./static/marmite.css">
     
@@ -135,25 +137,71 @@
 
 
 <div class="content-title" id="title">
-    <h1>Page not found</h1> 
+    <h1>Smart Timeouts</h1> 
     
 
 
 <span class="content-date">
-    <small></small>
+    <small> Apr 12, 2025 - &#10710; 2 min</small>
 </span>
 
 </div>
 
   
 
-  <div class="content-html">Page not found :/</div>
+  <div class="content-html"><p><em>Smart Timeouts</em> es una feature de <a href="https://github.com/DtxdF/overlord">Overlord</a> bastante simple, pero que me ha demostrado ser eficaz. Aunque la arquitectura de Overlord, la cual es un árbol encadenado (inspirado de alguna manera por DNS), es simple pero escala muy bien, eso trae el inconveniente de que un fallo en la <em>cadena C</em> puede ralentizar la <em>cadena B</em> y <em>A</em>. Al menos el cliente verá un error, pero no sin esperar unos segundos valiosos.</p>
+<p>Continuando, la idea de esta feature es deshabilitar la cadena que esté fallando, y está solo puede ser la cadena final (o la cola), o <em>&quot;la cadena C&quot;</em>. Esto al menos se debe realizar desde la <em>cadena B</em>. Al igual que el <em>timeout</em> se propaga, esta deshabilitación de la cola trae consigo el beneficio de que, dado que no se está intentando conectar a una cadena fallando, no generará un <em>timeout</em> por lo que todo el sistema se verá beneficiado, ahorrando unos buenos recursos, más si está sobrecargado.</p>
+<p>Suponiendo una lista de cadenas inicial <code>A -&gt; B -&gt; C</code>, el cliente intentará conectarse (indirectamente a través de las propias cadenas) a todas las cadenas para usar sus recursos. Todas las cadenas continúan operando con normalidad, pero repentinamente la <em>cadena C</em> falla por cualquier razón. El cliente ve el ejemplo luego de unos segundos. La <em>cadena B</em> sabe que hubo un fallo y dependiendo de cuanto sea la tolerancia, pondrá la cadena fallando en una lista negra por un periodo de tiempo configurable. Sin embargo, este periodo de tiempo configurable en el que la cadena fallando puede estar puede no ser suficiente, dado que tal vez el problema de la <em>cadena C</em> (la cadena fallando) puede persistir por un largo tiempo, así que cuando finalice el tiempo en el que esa cadena estará en la lista negra, el cliente se intentará conectar nuevamente sin éxito, lo cual pondrá nuevamente la cadena fallando en la lista negra, pero es donde se incrementa el tiempo hasta un máximo configurable. Así hasta que la cadena que esté fallando vuelva a la vida.</p>
+<p>Esto no quiere decir que el <em>timeout</em> se ha eliminado, no tendría sentido, es mejor arreglar el problema de la cadena fallando o simplemente configurar Overlord para eliminar o deshabilitar la cadena.</p>
+<p>Así de simple funcionan los <em>Smart Timeouts</em> en un sistema distribuido como Overlord.</p>
+</div>
+  
+  <footer class="data-tags-footer">
+
+    <div class="content-authors-flex">
+      <div class="content-authors-full">
+        
+
+      </div>
+
+      <div class="date-tags-container">
+        <div class="content-date">
+          
+
+
+<span class="content-date">
+    <small> Apr 12, 2025 - &#10710; 2 min</small>
+</span>
+
+        </div>
+
+        <ul class="content-tags">
+          
+          <li><a href="./tag-overlord.html">overlord</a></li>
+          
+          <li><a href="./tag-timeout.html">timeout</a></li>
+          
+          <li><a href="./tag-smart-timeout.html">smart timeout</a></li>
+          
+          <li><a href="./tag-timeout-strategy.html">timeout strategy</a></li>
+          
+          <li><a href="./tag-distributed-system.html">distributed system</a></li>
+          
+        </ul>
+      </div>
+    </div>
+  </footer>
   
 </article>
 
 
 
 
+
+  
+  
+  
+  
 
 
 
