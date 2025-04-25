@@ -1,4 +1,1918 @@
-<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Otro blog rand(3)</title><link></link><description>Desde UTC-04:00 tecleando a lo loco</description><pubDate>Sat, 12 Apr 2025 00:00:00 GMT</pubDate><lastBuildDate>Sun, 13 Apr 2025 22:53:03 GMT</lastBuildDate><generator>marmite</generator><item><title>Smart Timeouts</title><link>/smart-timeouts.html</link><category>overlord</category><category>timeout</category><category>smart timeout</category><category>timeout strategy</category><category>distributed system</category><guid>/smart-timeouts.html</guid><pubDate>Sat, 12 Apr 2025 00:00:00 GMT</pubDate><source url="">tag-overlord</source><content:encoded><![CDATA[<p><em>Smart Timeouts</em> es una feature de <a href="https://github.com/DtxdF/overlord">Overlord</a> bastante simple, pero que me ha demostrado ser eficaz. Aunque la arquitectura de Overlord, la cual es un árbol encadenado (inspirado de alguna manera por DNS), es simple pero escala muy bien, eso trae el inconveniente de que un fallo en la <em>cadena C</em> puede ralentizar la <em>cadena B</em> y <em>A</em>. Al menos el cliente verá un error, pero no sin esperar unos segundos valiosos.</p>
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Otro blog rand(3)</title><link></link><description>Desde UTC-04:00 tecleando a lo loco</description><pubDate>Wed, 23 Apr 2025 00:00:00 GMT</pubDate><lastBuildDate>Fri, 25 Apr 2025 22:56:45 GMT</lastBuildDate><generator>marmite</generator><item><title>Overlord: Deploy jails as fast as you code</title><link>/overlord.html</link><category>overlord</category><category>appjail</category><category>director</category><category>distributed system</category><guid>/overlord.html</guid><pubDate>Wed, 23 Apr 2025 00:00:00 GMT</pubDate><source url="">tag-overlord</source><content:encoded><![CDATA[<p><strong>Overlord</strong> is a fast, distributed orchestrator for FreeBSD jails oriented to GitOps. You define a file with the service intended to run on your cluster and deployment takes seconds to minutes.</p>
+<h2><a href="#architecture" aria-hidden="true" class="anchor" id="architecture"></a>Architecture</h2>
+<p>The Overlord architecture is described as a tree chain architecture. Each Overlord instance running the API server can be configured to group other chains. Each member can be further configured to group more chains together. However, although this step can be performed almost infinitely, doing this without caution can introduce latency, so it is important to know how you plan to organize your servers.</p>
+<p>The reason for choosing this architecture is because it is very simple and scales very well, so sharing resources among many servers is just sticking each chain together forming a cluster to deploy projects.</p>
+<p>This architecture also abstracts the way projects are deployed. A user who wants to deploy a project does not need to know the endpoint of each chain, only the first one (also known as the <em>root chain</em>) is enough. This is because each chain is tagged with an arbitrary string, so a user only needs to specify in his deployment file the endpoint of the <em>root chain</em>, the access token and the labels. Although labels are subjective, this can represent a desire. For example, we can label servers with the string <code>vm-only</code> for those servers that have the ability to deploy virtual machines or <code>db-only</code> for databases, it is really very arbitrary.</p>
+<pre><code>                  bravo
+                 /
+ main &lt;---&gt; alpha
+                 \
+                  charlie &lt;---&gt; delta
+</code></pre>
+<p>Assume that only charlie and delta have the <code>db-only</code> label. To deploy projects to the API servers with the specified labels, the client must make an HTTP request to main, specifying the chain <code>alpha.charlie</code> and <code>alpha.charlie.delta</code>. This is done transparently and does not require user intervention.</p>
+<pre><code>    main . alpha . charlie
+
+              &amp;
+
+ main . alpha . charlie . delta
+</code></pre>
+<h3><a href="#smart-timeouts" aria-hidden="true" class="anchor" id="smart-timeouts"></a>Smart Timeouts</h3>
+<p>What happens if a chain is down? If the root chain is down, we can do nothing, although we can specify more than one (although in the rest of this document we will only use one). However, if a chain after the root chain is down something interesting happens.</p>
+<p>When a chain positioned after the root chain is down, the chain that detects the error can blacklist the failed chain for a while. The blacklist is used to not display failed chains, although it is not forbidden to attempt to connect to a failed chain through another chain, this is because successfully connecting to a blacklisted chain automatically re-enables it.</p>
+<p>Each blacklisted chain has an assigned time to remain on the blacklist. After a period of time, the chain is removed from the blacklist, however, if the chain continues to fail, it is added back to the blacklist but for a longer time. This time increment has a limit so as not to disable a chain forever.</p>
+<p>Doing the above has the good effect that an HTTP request can decrease the time to complete since there is no need to connect to a failed chain.</p>
+<h2><a href="#deploying-projects" aria-hidden="true" class="anchor" id="deploying-projects"></a>Deploying Projects</h2>
+<p>The best way to demonstrate Overlord is to deploy a small project.</p>
+<p>Note that a project can have more than one jail, however, in the following example only one jail is needed.</p>
+<p><strong>filebrowser.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+projectName: filebrowser
+projectFile: |
+  options:
+    - virtualnet: ':&lt;random&gt; default'
+    - nat:
+  services:
+    filebrowser:
+      makejail: 'gh+AppJail-makejails/filebrowser'
+      volumes:
+        - db: filebrowser-db
+        - log: filebrowser-log
+        - www: filebrowser-www
+      start-environment:
+        - FB_NOAUTH: 1
+      arguments:
+        - filebrowser_tag: 14.2
+      options:
+        - expose: '8432:8080 ext_if:tailscale0 on_if:tailscale0'
+  default_volume_type: '&lt;volumefs&gt;'
+  volumes:
+    db:
+      device: /var/appjail-volumes/filebrowser/db
+    log:
+      device: /var/appjail-volumes/filebrowser/log
+    www:
+      device: /var/appjail-volumes/filebrowser/www
+</code></pre>
+<p>You have noticed that I'm not specifying the access token and entry point explicitly, but through environment variables, which are loaded through the <code>.env</code> file:</p>
+<p><strong>.env</strong>:</p>
+<pre><code>ENTRYPOINT=http://127.0.0.1:8888
+TOKEN=&lt;access token&gt;
+</code></pre>
+<p>And now another question: how is the access token generated? This is easy, the token is generated from the machine running the Overlord instance you want to contact, however only who has the privileges to access the secret key (which is generated pseudo-randomly by default) can generate tokens.</p>
+<pre><code class="language-console"># OVERLORD_CONFIG=/usr/local/etc/overlord.yml overlord gen-token
+...
+</code></pre>
+<p>The next step is simply to apply the deployment file.</p>
+<pre><code class="language-console">$ overlord apply -f filebrowser.yml
+</code></pre>
+<p>If there is no output, everything is fine, however this does not mean that the project is deployed. When a deployment file is applied and contains the specification to deploy a project (in the above case a <code>directorProject</code>), it is queued waiting for its turn. However, since there are no other projects currently running, our project will be deployed as fast as possible.</p>
+<pre><code class="language-console">$ overlord get-info -f filebrowser.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    filebrowser:
+      state: DONE
+      last_log: 2025-04-22_17h57m45s
+      locked: False
+      services:
+        - {'name': 'filebrowser', 'status': 0, 'jail': 'e969b06736'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 7 minutes and 42.41 seconds
+        job_id: 14
+        restarted: False
+        labels:
+         error: False
+         message: None
+</code></pre>
+<h2><a href="#metadata" aria-hidden="true" class="anchor" id="metadata"></a>Metadata</h2>
+<p>Metadata is used to create small files (such as configuration files) that can be used when deploying projects or VMs. While a git hosting such as GitLab, GitHub, Gitea, etc., is very useful in combination with Makejails, you can use Metadata instead of relying on a git hosting to further configure the service or VM you are deploying.</p>
+<p>The other advantage of metadata is that it can be shared between different deployments. For example, by deploying virtual machines that share the same <code>sshd_config(5)</code> and <code>authorized_keys</code> files.</p>
+<p><strong>tor.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+projectName: tor
+projectFile: |
+  options:
+    - virtualnet: ':&lt;random&gt; address:10.0.0.50 default'
+    - nat:
+  services:
+    tor:
+      makejail: !ENV '${OVERLORD_METADATA}/tor.makejail'
+      volumes:
+        - data: '/var/db/tor'
+  volumes:
+    data:
+      device: '/var/appjail-volumes/tor/data'
+</code></pre>
+<p><strong>metadata.yml</strong>:</p>
+<pre><code class="language-yaml">kind: metadata
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+metadata:
+  tor.makejail: |
+    OPTION start
+    OPTION overwrite=force
+
+    INCLUDE gh+DtxdF/efficient-makejail
+
+    PKG tor
+
+    CMD echo &quot;SocksPort 0.0.0.0:9050&quot; &gt; /usr/local/etc/tor/torrc
+    CMD echo &quot;HTTPTunnelPort 0.0.0.0:9080&quot; &gt;&gt; /usr/local/etc/tor/torrc
+
+    SERVICE tor oneenable
+    SERVICE tor start
+</code></pre>
+<p><strong>.env</strong>:</p>
+<pre><code>ENTRYPOINT=http://127.0.0.1:8888
+TOKEN=&lt;access token&gt;
+</code></pre>
+<p>There is no difference between deploying a project and the metadata from the user's point of view. However, metadata is not queued, it is simply written (asynchronously) to disk.</p>
+<pre><code class="language-console">$ overlord apply -f metadata.yml
+$ overlord apply -f tor.yml
+$ overlord get-info -f metadata.yml -t metadata
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  metadata:
+    tor.makejail: |
+      OPTION start
+      OPTION overwrite=force
+      
+      INCLUDE gh+DtxdF/efficient-makejail
+      
+      PKG tor
+      
+      CMD echo &quot;SocksPort 0.0.0.0:9050&quot; &gt; /usr/local/etc/tor/torrc
+      CMD echo &quot;HTTPTunnelPort 0.0.0.0:9080&quot; &gt;&gt; /usr/local/etc/tor/torrc
+      
+      SERVICE tor oneenable
+      SERVICE tor start
+$ overlord get-info -f tor.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    tor:
+      state: UNFINISHED
+      last_log: 2025-04-22_18h40m30s
+      locked: True
+      services:
+        - {'name': 'tor', 'status': 0, 'jail': '7ce0dfdcef'}
+      up:
+        operation: RUNNING
+        last_update: 38.01 seconds
+        job_id: 16
+</code></pre>
+<h2><a href="#deploying-freebsd-vms" aria-hidden="true" class="anchor" id="deploying-freebsd-vms"></a>Deploying FreeBSD VMs</h2>
+<p>Overlord can deploy virtual machines thanks to the great <a href="https://github.com/churchers/vm-bhyve">vm-bhyve</a> project. A virtual machine isolates many parts that a jail cannot, with the overhead that such a thing implies, however that overhead is not a problem depending on what you are doing.</p>
+<p>This deployment works as follows: A director file is created (overlord does this internally), which is used to further create a jail that represents the environment that must have <a href="https://github.com/churchers/vm-bhyve">vm-bhyve</a> installed, must be configured to use the firewall (one supported by FreeBSD) and must be configured with the bridge used by the VMs. This sounds really complicated, but <a href="https://github.com/DtxdF/vm-makejail">there is a Makejail</a> that does it, so take a look at it for details. The Makejail mentioned above creates the environment with <a href="https://freshports.org/sysutils/vm-bhyve-devel">vm-bhyve-devel</a> installed, configures <code>pf(4)</code> and creates a bridge with an assigned IPv4 (<code>192.168.8.1/24</code>), so we must assign our VM an IPv4 between that range. <code>pf(4)</code> is not configured to isolate further connections, so an application inside the VM can &quot;escape&quot; to other services, which may or may not be desirable depending on what it is doing.</p>
+<p><strong>vm.yml</strong>:</p>
+<pre><code class="language-yaml">kind: vmJail
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - !ENV '${DST}'
+vmName: !ENV '${VM}'
+makejail: 'gh+DtxdF/vm-makejail'
+template:
+  loader: 'bhyveload'
+  cpu: !ENV '${CPU}'
+  memory: !ENV '${MEM}'
+  network0_type: 'virtio-net'
+  network0_switch: 'public'
+  wired_memory: 'YES'
+diskLayout:
+  driver: 'nvme'
+  size: !ENV '${DISK}'
+  from:
+    type: 'components'
+    components:
+      - base.txz
+      - kernel.txz
+    osArch: amd64
+    osVersion: !ENV '${VERSION}-RELEASE'
+  disk:
+    scheme: 'gpt'
+    partitions:
+      - type: 'freebsd-boot'
+        size: '512k'
+        alignment: '1m'
+      - type: 'freebsd-swap'
+        size: !ENV '${SWAP}'
+        alignment: '1m'
+      - type: 'freebsd-ufs'
+        alignment: '1m'
+        format:
+          flags: '-Uj'
+    bootcode:
+      bootcode: '/boot/pmbr'
+      partcode: '/boot/gptboot'
+      index: 1
+  fstab:
+    - device: '/dev/nda0p3'
+      mountpoint: '/'
+      type: 'ufs'
+      options: 'rw,sync'
+      dump: 1
+      pass: 1
+    - device: '/dev/nda0p2'
+      mountpoint: 'none'
+      type: 'swap'
+      options: 'sw'
+      dump: 0
+      pass: 0
+script-environment:
+  - HOSTNAME: !ENV '${HOSTNAME}'
+script: |
+  set -xe
+  set -o pipefail
+
+  . &quot;/metadata/environment&quot;
+
+  sysrc -f /mnt/etc/rc.conf ifconfig_vtnet0=&quot;inet 192.168.8.2/24&quot;
+  sysrc -f /mnt/etc/rc.conf defaultrouter=&quot;192.168.8.1&quot;
+  sysrc -f /mnt/etc/rc.conf fsck_y_enable=&quot;YES&quot;
+  sysrc -f /mnt/etc/rc.conf clear_tmp_enable=&quot;YES&quot;
+  sysrc -f /mnt/etc/rc.conf dumpdev=&quot;NO&quot;
+  sysrc -f /mnt/etc/rc.conf moused_nondefault_enable=&quot;NO&quot;
+  sysrc -f /mnt/etc/rc.conf hostname=&quot;${HOSTNAME}&quot;
+
+  if [ -f &quot;/metadata/resolv.conf&quot; ]; then
+    cp -a /metadata/resolv.conf /mnt/etc/resolv.conf
+  fi
+
+  if [ -f &quot;/metadata/loader.conf&quot; ]; then
+    cp /metadata/loader.conf /mnt/boot/loader.conf
+  fi
+
+  if [ -f &quot;/metadata/zerotier_network&quot; ]; then
+    pkg -c /mnt install -y zerotier
+
+    zerotier_network=`head -1 -- &quot;/metadata/zerotier_network&quot;`
+
+    cat &lt;&lt; EOF &gt; /mnt/etc/rc.local
+    while :; do
+      if ! /usr/local/bin/zerotier-cli join ${zerotier_network}; then
+        sleep 1
+        continue
+      fi
+
+      break
+    done
+
+    rm -f /etc/rc.local
+  EOF
+
+    sysrc -f /mnt/etc/rc.conf zerotier_enable=&quot;YES&quot;
+  elif [ -f &quot;/metadata/ts_auth_key&quot; ]; then
+    pkg -c /mnt install -y tailscale
+
+    ts_auth_key=`head -1 -- &quot;/metadata/ts_auth_key&quot;`
+
+    echo &quot;/usr/local/bin/tailscale up --accept-dns=false --auth-key=\&quot;${ts_auth_key}\&quot; &amp;&amp; rm -f /etc/rc.local&quot; &gt; /mnt/etc/rc.local
+
+    sysrc -f /mnt/etc/rc.conf tailscaled_enable=&quot;YES&quot;
+  fi
+
+  if [ -f &quot;/metadata/timezone&quot; ]; then
+    timezone=`head -1 -- &quot;/metadata/timezone&quot;`
+
+    ln -fs &quot;/usr/share/zoneinfo/${timezone}&quot; /mnt/etc/localtime
+  fi
+
+  if [ -f &quot;/metadata/sshd_config&quot; ]; then
+    sysrc -f /mnt/etc/rc.conf sshd_enable=&quot;YES&quot;
+    cp /metadata/sshd_config /mnt/etc/ssh/sshd_config
+  fi
+
+  if [ -f &quot;/metadata/ssh_key&quot; ]; then
+    cp /metadata/ssh_key /mnt/etc/ssh/authorized_keys
+  fi
+
+  if [ -f &quot;/metadata/sysctl.conf&quot; ]; then
+    cp /metadata/sysctl.conf /mnt/etc/sysctl.conf
+  fi
+
+  if [ -f &quot;/metadata/pkg.conf&quot; ]; then
+    mkdir -p /mnt/usr/local/etc/pkg/repos
+    cp /metadata/pkg.conf /mnt/usr/local/etc/pkg/repos/Latest.conf
+  fi
+metadata:
+  - resolv.conf
+  - loader.conf
+  - timezone
+  - sshd_config
+  - ssh_key
+  - sysctl.conf
+  - pkg.conf
+  - ts_auth_key
+</code></pre>
+<p><strong>metadata.yml</strong>:</p>
+<pre><code class="language-yaml">kind: metadata
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - vm-only
+metadata:
+  ts_auth_key: '&lt;tailscale auth key&gt;'
+  resolv.conf: |
+    nameserver 192.168.1.107
+  timezone: 'America/Caracas'
+  loader.conf: |
+    nvme_load=&quot;YES&quot;
+    if_bridge_load=&quot;YES&quot;
+    bridgestp_load=&quot;YES&quot;
+    if_wg_load=&quot;YES&quot;
+    kern.racct.enable=1
+  ssh_key: '&lt;SSH public key&gt;'
+  sshd_config: |
+    # Ports
+    Port 22
+
+    # Authentication
+    PubkeyAuthentication yes
+    AuthenticationMethods publickey
+    PermitRootLogin prohibit-password
+    PrintMotd no
+
+    # Forwarding
+    X11Forwarding no
+    AllowAgentForwarding yes
+
+    # Connection checks
+    ClientAliveCountMax 3
+    ClientAliveInterval 15
+
+    # Compression
+    Compression no
+
+    # Limits
+    LoginGraceTime 40
+
+    # Public keys
+    AuthorizedKeysFile      /etc/ssh/authorized_keys
+
+    # SFTP
+    Subsystem sftp internal-sftp
+  sysctl.conf: |
+    # A bit of hardening
+    security.bsd.see_other_uids=0
+    security.bsd.see_other_gids=0
+    security.bsd.see_jail_proc=0
+    kern.randompid=1
+
+    # Allow packet filtering in if_bridge(4)
+    net.link.bridge.pfil_member=1
+    net.link.bridge.pfil_bridge=1
+  pkg.conf: |
+    FreeBSD: {
+      url: &quot;pkg+http://pkg.FreeBSD.org/${ABI}/latest&quot;,
+      mirror_type: &quot;srv&quot;,
+      signature_type: &quot;fingerprints&quot;,
+      fingerprints: &quot;/usr/share/keys/pkg&quot;,
+      enabled: yes
+    }
+</code></pre>
+<p><strong>.profile-vmtest.env</strong>:</p>
+<pre><code>ENTRYPOINT=http://127.0.0.1:8888
+TOKEN=&lt;access token&gt;
+VM=vmtest
+CPU=1
+MEM=256M
+DISK=10G
+VERSION=14.2
+SWAP=1G
+HOSTNAME=vmtest
+DST=provider
+</code></pre>
+<p>Instead of copy and paste the deployment file each time you want to deploy a virtual machine, it is preferable to create several environment (or profile-like) files.</p>
+<pre><code class="language-console">$ overlord -e .profile-vmtest.env apply -f metadata.yml
+$ overlord -e .profile-vmtest.env apply -f vm.yml
+$ overlord -e .profile-vmtest.env get-info -f vm.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    vmtest:
+      state: UNFINISHED
+      last_log: 2025-04-22_20h19m34s
+      locked: True
+      services:
+        - {'name': 'vm', 'status': 0, 'jail': 'vmtest'}
+      up:
+        operation: RUNNING
+        last_update: 58.85 seconds
+        job_id: 17
+</code></pre>
+<p>Depending on the type of installation, this may take some time. In the above case we chose to install FreeBSD from its components, so if the server does not have them yet or if it has them but they change remotely (for example: modification time), Overlord will proceed to download them.</p>
+<pre><code class="language-console">$ overlord -e .profile-vmtest.env get-info -f vm.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    vmtest:
+      state: DONE
+      last_log: 2025-04-22_20h19m34s
+      locked: False
+      services:
+        - {'name': 'vm', 'status': 0, 'jail': 'vmtest'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 6 minutes and 10.02 seconds
+        job_id: 17
+        restarted: False
+$ overlord -e .profile-vmtest.env get-info -f vm.yml -t vm --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    vmtest:
+      virtual-machines:
+          operation: COMPLETED
+          output: |
+            md0 created
+             md0p1 added
+             md0p2 added
+             md0p3 added
+             /dev/md0p3: 9214.0MB (18870272 sectors) block size 32768, fragment size 4096
+             	using 15 cylinder groups of 625.22MB, 20007 blks, 80128 inodes.
+             	with soft updates
+             super-block backups (for fsck_ffs -b #) at:
+              192, 1280640, 2561088, 3841536, 5121984, 6402432, 7682880, 8963328, 10243776,
+              11524224, 12804672, 14085120, 15365568, 16646016, 17926464
+             Using inode 4 in cg 0 for 75497472 byte journal
+             bootcode written to md0
+             partcode written to md0p1
+             ifconfig_vtnet0:  -&gt; inet 192.168.8.2/24
+             defaultrouter: NO -&gt; 192.168.8.1
+             fsck_y_enable: NO -&gt; YES
+             clear_tmp_enable: NO -&gt; YES
+             dumpdev: NO -&gt; NO
+             moused_nondefault_enable: YES -&gt; NO
+             hostname:  -&gt; vmtest
+             [vmtest.appjail] Installing pkg-2.1.0...
+             [vmtest.appjail] Extracting pkg-2.1.0: .......... done
+             Updating FreeBSD repository catalogue...
+             [vmtest.appjail] Fetching meta.conf: . done
+             [vmtest.appjail] Fetching data.pkg: .......... done
+             Processing entries: .......... done
+             FreeBSD repository update completed. 35950 packages processed.
+             All repositories are up to date.
+             The following 2 package(s) will be affected (of 0 checked):
+             
+             New packages to be INSTALLED:
+             	ca_root_nss: 3.108
+             	tailscale: 1.82.5
+             
+             Number of packages to be installed: 2
+             
+             The process will require 35 MiB more space.
+             11 MiB to be downloaded.
+             [vmtest.appjail] [1/2] Fetching tailscale-1.82.5.pkg: .......... done
+             [vmtest.appjail] [2/2] Fetching ca_root_nss-3.108.pkg: .......... done
+             Checking integrity... done (0 conflicting)
+             [vmtest.appjail] [1/2] Installing ca_root_nss-3.108...
+             [vmtest.appjail] [1/2] Extracting ca_root_nss-3.108: ....... done
+             Scanning /usr/share/certs/untrusted for certificates...
+             Scanning /usr/share/certs/trusted for certificates...
+             Scanning /usr/local/share/certs for certificates...
+             [vmtest.appjail] [2/2] Installing tailscale-1.82.5...
+             [vmtest.appjail] [2/2] Extracting tailscale-1.82.5: ...... done
+             =====
+             Message from ca_root_nss-3.108:
+             
+             --
+             FreeBSD does not, and can not warrant that the certification authorities
+             whose certificates are included in this package have in any way been
+             audited for trustworthiness or RFC 3647 compliance.
+             
+             Assessment and verification of trust is the complete responsibility of
+             the system administrator.
+             
+             This package installs symlinks to support root certificate discovery
+             for software that either uses other cryptographic libraries than
+             OpenSSL, or use OpenSSL but do not follow recommended practice.
+             
+             If you prefer to do this manually, replace the following symlinks with
+             either an empty file or your site-local certificate bundle.
+             
+               * /etc/ssl/cert.pem
+               * /usr/local/etc/ssl/cert.pem
+               * /usr/local/openssl/cert.pem
+             tailscaled_enable:  -&gt; YES
+             sshd_enable: NO -&gt; YES
+             vm_list:  -&gt; vmtest
+             Starting vmtest
+               * found guest in /vm/vmtest
+               * booting...
+            newfs: soft updates journaling set
+             + set -o pipefail
+             + . /metadata/environment
+             + export 'HOSTNAME=vmtest'
+             + sysrc -f /mnt/etc/rc.conf 'ifconfig_vtnet0=inet 192.168.8.2/24'
+             + sysrc -f /mnt/etc/rc.conf 'defaultrouter=192.168.8.1'
+             + sysrc -f /mnt/etc/rc.conf 'fsck_y_enable=YES'
+             + sysrc -f /mnt/etc/rc.conf 'clear_tmp_enable=YES'
+             + sysrc -f /mnt/etc/rc.conf 'dumpdev=NO'
+             + sysrc -f /mnt/etc/rc.conf 'moused_nondefault_enable=NO'
+             + sysrc -f /mnt/etc/rc.conf 'hostname=vmtest'
+             + [ -f /metadata/resolv.conf ]
+             + cp -a /metadata/resolv.conf /mnt/etc/resolv.conf
+             + [ -f /metadata/loader.conf ]
+             + cp /metadata/loader.conf /mnt/boot/loader.conf
+             + [ -f /metadata/zerotier_network ]
+             + [ -f /metadata/ts_auth_key ]
+             + pkg -c /mnt install -y tailscale
+             + head -1 -- /metadata/ts_auth_key
+             + ts_auth_key=[REDACTED]
+             + echo '/usr/local/bin/tailscale up --accept-dns=false --auth-key=&quot;[REDACTED]&quot; &amp;&amp; rm -f /etc/rc.local'
+             + sysrc -f /mnt/etc/rc.conf 'tailscaled_enable=YES'
+             + [ -f /metadata/timezone ]
+             + head -1 -- /metadata/timezone
+             + timezone=America/Caracas
+             + ln -fs /usr/share/zoneinfo/America/Caracas /mnt/etc/localtime
+             + [ -f /metadata/sshd_config ]
+             + sysrc -f /mnt/etc/rc.conf 'sshd_enable=YES'
+             + cp /metadata/sshd_config /mnt/etc/ssh/sshd_config
+             + [ -f /metadata/ssh_key ]
+             + cp /metadata/ssh_key /mnt/etc/ssh/authorized_keys
+             + [ -f /metadata/sysctl.conf ]
+             + cp /metadata/sysctl.conf /mnt/etc/sysctl.conf
+             + [ -f /metadata/pkg.conf ]
+             + mkdir -p /mnt/usr/local/etc/pkg/repos
+             + cp /metadata/pkg.conf /mnt/usr/local/etc/pkg/repos/Latest.conf
+          last_update: 5 minutes and 12.6 seconds
+          job_id: 17
+</code></pre>
+<p>As I'm using tailscale and the VM above is about to be configured to join my tailnet, after a while it should appear in the node list:</p>
+<pre><code class="language-console">$ tailscale status
+...
+100.124.236.28  vmtest               REDACTED@    freebsd -
+$ ssh root@100.124.236.28
+The authenticity of host '100.124.236.28 (100.124.236.28)' can't be established.
+ED25519 key fingerprint is SHA256:Oc61mU8erpgS2evkwL9WhOOl4Ze94sSNfhImLy3b4UQ.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '100.124.236.28' (ED25519) to the list of known hosts.
+root@vmtest:~ # 
+</code></pre>
+<h2><a href="#service-discovery" aria-hidden="true" class="anchor" id="service-discovery"></a>Service Discovery</h2>
+<p>A service is deployed, however depending on how many servers you have in your cluster the service endpoint can be a difficult part to build. You know the port and external interface used and certainly the IP address is easy to get, but it is much easier to use DNS, which is its primary purpose. The service can be deployed on different servers but its endpoint is always the same.</p>
+<p>SkyDNS is an older but powerful protocol that, in combination with Etcd, can provide easy service discovery. Overlord can be configured to use both Etcd and SkyDNS. Let's deploy our Etcd cluster.</p>
+<p><strong>etcd.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+    - r2
+    - centralita
+projectName: etcd-cluster
+projectFile: |
+  options:
+    - alias:
+    - ip4_inherit:
+  services:
+    etcd:
+      makejail: 'gh+AppJail-makejails/etcd'
+      arguments:
+        - etcd_tag: '14.2-34'
+      volumes:
+        - data: etcd-data
+      start-environment:
+        - ETCD_NAME: !ENV '${NAME}'
+        - ETCD_ADVERTISE_CLIENT_URLS: !ENV 'http://${HOSTIP}:2379'
+        - ETCD_LISTEN_CLIENT_URLS: !ENV 'http://${HOSTIP}:2379'
+        - ETCD_LISTEN_PEER_URLS: !ENV 'http://${HOSTIP}:2380'
+        - ETCD_INITIAL_ADVERTISE_PEER_URLS: !ENV 'http://${HOSTIP}:2380'
+        - ETCD_INITIAL_CLUSTER_TOKEN: 'etcd-demo-cluster'
+        - ETCD_INITIAL_CLUSTER: !ENV '${CLUSTER}'
+        - ETCD_INITIAL_CLUSTER_STATE: 'new'
+        - ETCD_HEARTBEAT_INTERVAL: '5000'
+        - ETCD_ELECTION_TIMEOUT: '50000'
+        - ETCD_LOG_LEVEL: 'error'
+  default_volume_type: '&lt;volumefs&gt;'
+  volumes:
+    data:
+      device: /var/appjail-volumes/etcd-cluster/data
+environment:
+  CLUSTER: 'etcd0=http://100.65.139.52:2380,etcd1=http://100.109.0.125:2380,etcd2=http://100.96.18.2:2380'
+labelsEnvironment:
+  desktop:
+    NAME: 'etcd0'
+    HOSTIP: '100.65.139.52'
+  r2:
+    NAME: 'etcd1'
+    HOSTIP: '100.109.0.125'
+  centralita:
+    NAME: 'etcd2'
+    HOSTIP: '100.96.18.2'
+</code></pre>
+<p>Profit!</p>
+<pre><code class="language-console">$ overlord apply -f etcd.yml
+$ overlord get-info -f etcd.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    etcd-cluster:
+      state: DONE
+      last_log: 2025-04-23_02h28m36s
+      locked: False
+      services:
+        - {'name': 'etcd', 'status': 0, 'jail': 'f094a31c46'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 8 minutes and 11.51 seconds
+        job_id: 20
+        restarted: False
+        labels:
+         error: False
+         message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    etcd-cluster:
+      state: DONE
+      last_log: 2025-04-23_02h28m37s
+      locked: False
+      services:
+        - {'name': 'etcd', 'status': 0, 'jail': '1ff836df47'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 5 minutes and 37.82 seconds
+        job_id: 2
+        restarted: False
+        labels:
+         error: False
+         message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: r2
+  labels:
+    - all
+    - r2
+    - services
+  projects:
+    etcd-cluster:
+      state: DONE
+      last_log: 2025-04-23_02h28m38s
+      locked: False
+      services:
+        - {'name': 'etcd', 'status': 0, 'jail': '756ae9d5ca'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 5 minutes and 5.04 seconds
+        job_id: 1
+        restarted: False
+        labels:
+         error: False
+         message: None
+</code></pre>
+<p>Once the deployment is done, it is time to configure each Overlord instance with the following parameters.</p>
+<p><strong>/usr/local/etc/overlord.yml</strong>:</p>
+<pre><code class="language-yaml">etcd:
+  100.65.139.52: {}
+  100.109.0.125: {}
+  100.96.18.2: {}
+</code></pre>
+<p>Remember to restart the Overlord processes for the changes to take effect.</p>
+<pre><code>supervisorctl restart overlord:
+</code></pre>
+<p>The next service we have to deploy is CoreDNS. Thanks to it we can use SkyDNS through the <a href="https://coredns.io/plugins/etcd/">Etcd plugin</a>.</p>
+<p><strong>coredns.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+    - r2
+projectName: dns-server
+projectFile: |
+  options:
+    - alias:
+    - ip4_inherit:
+  services:
+    coredns:
+      makejail: !ENV '${OVERLORD_METADATA}/coredns.makejail'
+</code></pre>
+<p><strong>metadata.yml</strong>:</p>
+<pre><code class="language-yaml">kind: metadata
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+    - r2
+metadata:
+  Corefile: |
+    .:53 {
+      bind tailscale0
+      log
+      errors
+      forward . 208.67.222.222 208.67.220.220
+      etcd overlord.lan. {
+        endpoint http://100.65.139.52:2379 http://100.109.0.125:2379 http://100.96.18.2:2379
+      }
+      hosts /etc/hosts namespace.lan.
+      cache 30
+    }
+  coredns.hosts: |
+    100.65.139.52    controller.namespace.lan
+    100.96.18.2      centralita.namespace.lan
+    100.127.18.7     fbsd4dev.namespace.lan
+    100.123.177.93   provider.namespace.lan
+    100.109.0.125   r2.namespace.lan
+    172.16.0.3      cicd.namespace.lan
+  coredns.makejail: |
+    OPTION start
+    OPTION overwrite=force
+    OPTION healthcheck=&quot;health_cmd:jail:service coredns status&quot; &quot;recover_cmd:jail:service coredns restart&quot;
+
+    INCLUDE gh+DtxdF/efficient-makejail
+
+    CMD mkdir -p /usr/local/etc/pkg/repos
+    COPY ${OVERLORD_METADATA}/coredns.pkg.conf /usr/local/etc/pkg/repos/Latest.conf
+
+    PKG coredns
+
+    CMD mkdir -p /usr/local/etc/coredns
+    COPY ${OVERLORD_METADATA}/Corefile /usr/local/etc/coredns/Corefile
+
+    COPY ${OVERLORD_METADATA}/coredns.hosts /etc/hosts
+
+    SYSRC coredns_enable=YES
+    SERVICE coredns start
+  coredns.pkg.conf: |
+    FreeBSD: {
+      url: &quot;pkg+https://pkg.FreeBSD.org/${ABI}/latest&quot;,
+      mirror_type: &quot;srv&quot;,
+      signature_type: &quot;fingerprints&quot;,
+      fingerprints: &quot;/usr/share/keys/pkg&quot;,
+      enabled: yes
+    }
+</code></pre>
+<p>As you can see in the CoreDNS configuration file, the <code>overlord.lan.</code> zone is assumed but by default Overlord only uses <code>.</code> which does not make sense for this context, so proceed to configure Overlord with this in mind and deploy CoreDNS.</p>
+<p><strong>/usr/local/etc/overlord.yml</strong>:</p>
+<pre><code class="language-yaml">skydns:
+  zone: 'overlord.lan.'
+</code></pre>
+<p><strong>Note</strong>: Remember to restart the Overlord processes for the changes to take effect.</p>
+<pre><code class="language-console">$ overlord apply -f metadata.yml
+$ overlord apply -f coredns.yml
+$ overlord get-info -f coredns.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    dns-server:
+      state: DONE
+      last_log: 2025-04-23_13h32m49s
+      locked: False
+      services:
+        - {'name': 'coredns', 'status': 0, 'jail': '8106aaca6d'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 2 minutes and 30.14 seconds
+        job_id: 25
+        restarted: False
+        labels:
+         error: False
+         message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: r2
+  labels:
+    - all
+    - r2
+    - services
+  projects:
+    dns-server:
+      state: DONE
+      last_log: 2025-04-23_13h32m54s
+      locked: False
+      services:
+        - {'name': 'coredns', 'status': 0, 'jail': '9516eb48aa'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 3 minutes and 26.9 seconds
+        job_id: 4
+        restarted: False
+        labels:
+         error: False
+         message: None
+</code></pre>
+<p>Our Etcd cluster is up and running and our DNS servers are up and running. Clients should be configured to resolve DNS hostnames through those DNS servers, so configure them in their <code>resolv.conf(5)</code> or similar.</p>
+<p><strong>/etc/resolv.conf</strong>:</p>
+<pre><code>nameserver 100.65.139.52
+nameserver 100.109.0.125
+</code></pre>
+<p>Our Frankenstein is alive! So the next step is to deploy a service and test if all parts are working as expected.</p>
+<p><strong>homebox.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - centralita
+projectName: homebox
+projectFile: |
+  options:
+    - virtualnet: ':&lt;random&gt; default'
+    - nat:
+  services:
+    homebox:
+      makejail: gh+AppJail-makejails/homebox
+      options:
+        - expose: '8666:7745 ext_if:tailscale0 on_if:tailscale0'
+        - label: 'overlord.skydns:1'
+        - label: 'overlord.skydns.group:homebox'
+        - label: 'overlord.skydns.interface:tailscale0'
+      volumes:
+        - data: homebox-data
+      arguments:
+        - homebox_tag: 14.2
+  default_volume_type: '&lt;volumefs&gt;'
+  volumes:
+    data:
+      device: /var/appjail-volumes/homebox/data
+</code></pre>
+<p>So simple. Overlord intercepts the labels that we define in our <a href="https://github.com/DtxdF/director">Director</a> file and based on that it creates the DNS record.</p>
+<pre><code class="language-console">$ overlord apply -f homebox.yml
+$ overlord get-info -f homebox.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    homebox:
+      state: DONE
+      last_log: 2025-04-23_15h44m38s
+      locked: False
+      services:
+        - {'name': 'homebox', 'status': 0, 'jail': '1f97e32f36'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 4 minutes and 4.1 seconds
+        job_id: 6
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             homebox:
+               error: False
+               message: None
+         skydns:
+           services:
+             homebox:
+               error: False
+               message: (project:homebox, service:homebox, records:[address:True,ptr:None,srv:None] records has been updated.
+</code></pre>
+<p>Finally, our endpoint is <a href="http://homebox.overlord.lan:8666/">http://homebox.overlord.lan:8666/</a></p>
+<h2><a href="#load-balancing" aria-hidden="true" class="anchor" id="load-balancing"></a>Load Balancing</h2>
+<p>An interesting fact about SkyDNS is that multiple domains are grouped, so if we deploy a service on multiple servers and they use the same group, a DNS request will return three A records (in the case of IPv4), or what amounts to three IPv4 addresses.</p>
+<p><strong>hello-http.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - services
+projectName: hello-http
+projectFile: |
+  options:
+    - virtualnet: ':&lt;random&gt; default'
+    - nat:
+  services:
+    darkhttpd:
+      makejail: 'gh+DtxdF/hello-http-makejail'
+      options:
+        - expose: '9128:80 ext_if:tailscale0 on_if:tailscale0'
+        - label: 'appjail.dns.alt-name:hello-http'
+        - label: 'overlord.skydns:1'
+        - label: 'overlord.skydns.group:hello-http'
+        - label: 'overlord.skydns.interface:tailscale0'
+      arguments:
+        - darkhttpd_tag: 14.2
+</code></pre>
+<p>A nice side effect of this is that services are load-balanced in a round-robin fashion, although this is entirely client-dependent, but most modern ones do it.</p>
+<pre><code class="language-console">$ overlord apply -f hello-http.yml
+$ overlord get-info -f hello-http.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_16h26m08s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '7c2225c5fe'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 2 minutes and 43.3 seconds
+        job_id: 28
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, records:[address:True,ptr:None,srv:None] records has been updated.
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_16h26m09s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '3822f65e97'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 2 minutes and 18.56 seconds
+        job_id: 13
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, records:[address:True,ptr:None,srv:None] records has been updated.
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: r2
+  labels:
+    - all
+    - r2
+    - services
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_16h26m10s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '0e0e64eb3c'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 51.17 seconds
+        job_id: 8
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, records:[address:True,ptr:None,srv:None] records has been updated.
+$ host -t A hello-http.overlord.lan
+hello-http.overlord.lan has address 100.65.139.52
+hello-http.overlord.lan has address 100.109.0.125
+hello-http.overlord.lan has address 100.96.18.2
+$ curl http://hello-http.overlord.lan:9128/
+curl http://hello-http.overlord.lan:9128
+Hello, world!
+UUID: 472ffbdb-9472-4aa2-95ff-39f4bde214df
+$ curl http://hello-http.overlord.lan:9128/
+Hello, world!
+UUID: 7db3b268-87bb-4e81-8be3-e888378fa13b
+</code></pre>
+<p>However, I know that in most cases a more complex configuration is needed. Worse, as noted above this is client-dependent, so it may or may not fit your intent.</p>
+<p>Fortunately, Overlord comes with an integration with HAProxy, or more specifically with Data Plane API, so your configuration can be as complex as you need.</p>
+<p><strong>haproxy.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+    - r2
+projectName: load-balancer
+projectFile: |
+  options:
+    - alias:
+    - ip4_inherit:
+  services:
+    haproxy:
+      makejail: !ENV '${OVERLORD_METADATA}/haproxy.makejail'
+      arguments:
+        - haproxy_tag: 14.2-dataplaneapi
+      options:
+        - label: 'overlord.skydns:1'
+        - label: 'overlord.skydns.group:revproxy'
+        - label: 'overlord.skydns.interface:tailscale0'
+</code></pre>
+<p><strong>metadata.yml</strong>:</p>
+<pre><code class="language-yaml">kind: metadata
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+    - r2
+metadata:
+  haproxy.makejail: |
+    ARG haproxy_tag=13.5
+    ARG haproxy_ajspec=gh+AppJail-makejails/haproxy
+
+    OPTION start
+    OPTION overwrite=force
+    OPTION copydir=${OVERLORD_METADATA}
+    OPTION file=/haproxy.conf
+
+    FROM --entrypoint &quot;${haproxy_ajspec}&quot; haproxy:${haproxy_tag}
+
+    INCLUDE gh+DtxdF/efficient-makejail
+
+    SYSRC haproxy_enable=YES
+    SYSRC haproxy_config=/haproxy.conf
+    
+    SERVICE haproxy start
+
+    STOP
+
+    STAGE start
+
+    WORKDIR /dataplaneapi
+
+    RUN daemon \
+            -r \
+            -t &quot;Data Plane API&quot; \
+            -P .master \
+            -p .pid \
+            -o .log \
+                ./dataplaneapi \
+                    -f /usr/local/etc/dataplaneapi.yml \
+                    --host=0.0.0.0 \
+                    --port=5555 \
+                    --spoe-dir=/usr/local/etc/haproxy/spoe \
+                    --haproxy-bin=/usr/local/sbin/haproxy \
+                    --reload-cmd=&quot;service haproxy reload&quot; \
+                    --restart-cmd=&quot;service haproxy restart&quot; \
+                    --status-cmd=&quot;service haproxy status&quot; \
+                    --maps-dir=/usr/local/etc/haproxy/maps \
+                    --config-file=/haproxy.conf \
+                    --ssl-certs-dir=/usr/local/etc/haproxy/ssl \
+                    --general-storage-dir=/usr/local/etc/haproxy/general \
+                    --dataplane-storage-dir=/usr/local/etc/haproxy/dataplane \
+                    --log-to=file \
+                    --userlist=dataplaneapi
+  haproxy.conf: |
+    userlist dataplaneapi
+      user admin insecure-password cuwBvS5XMphtCNuC
+
+    global
+      daemon
+      log 127.0.0.1:514 local0
+      log-tag HAProxy
+
+    defaults
+      mode http
+      log global
+      option httplog
+      timeout client 30s
+      timeout server 50s
+      timeout connect 10s
+      timeout http-request 10s
+
+    frontend web
+      bind :80
+      default_backend web
+
+    backend web
+      option httpchk HEAD /
+      balance roundrobin
+</code></pre>
+<p>We are about to deploy HAProxy / Data Plane API on two servers. The reason for doing this is to avoid SPOF (single point of failure), at least if one instance of HAProxy / Data Plane API goes down at any time, the other will rescue us. However, Overlord can only point to one instance of Data Plane API, so if we use two (as below) servers, we need to specify one instance on one and a different instance on the other. As you can see in the <a href="https://github.com/DtxdF/director">Director</a> file, we have used SkyDNS, so that clients can use the <code>revproxy.overlord.lan</code> domain instead of each individual IP address, with the advantage that even if one instance of HAProxy / Data Plane API is down, we have the other and the client can make requests to the other.</p>
+<pre><code class="language-console">$ overlord apply -f metadata.yml
+$ overlord apply -f haproxy.yml
+$ overlord get-info -f haproxy.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    load-balancer:
+      state: DONE
+      last_log: 2025-04-23_17h04m01s
+      locked: False
+      services:
+        - {'name': 'haproxy', 'status': 0, 'jail': '8d92fc6d2d'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 2 minutes and 20.12 seconds
+        job_id: 30
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             haproxy:
+               error: False
+               message: None
+         skydns:
+           services:
+             haproxy:
+               error: False
+               message: (project:load-balancer, service:haproxy, records:[address:True,ptr:None,srv:None] records has been updated.
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: r2
+  labels:
+    - all
+    - r2
+    - services
+  projects:
+    load-balancer:
+      state: DONE
+      last_log: 2025-04-23_17h04m02s
+      locked: False
+      services:
+        - {'name': 'haproxy', 'status': 0, 'jail': '05c589c8a1'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 2 minutes and 53.27 seconds
+        job_id: 10
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             haproxy:
+               error: False
+               message: None
+         skydns:
+           services:
+             haproxy:
+               error: False
+               message: (project:load-balancer, service:haproxy, records:[address:True,ptr:None,srv:None] records has been updated.
+</code></pre>
+<p><strong>/usr/local/etc/overlord.yml</strong> (<strong>centralita</strong>):</p>
+<pre><code class="language-yaml">dataplaneapi:
+  auth:
+    username: 'admin'
+    password: 'cuwBvS5XMphtCNuC'
+  entrypoint: 'http://100.65.139.52:5555'
+</code></pre>
+<p><strong>/usr/local/etc/overlord.yml</strong> (<strong>provider</strong>):</p>
+<pre><code class="language-yaml">dataplaneapi:
+  auth:
+    username: 'admin'
+    password: 'cuwBvS5XMphtCNuC'
+  entrypoint: 'http://100.109.0.125:5555'
+</code></pre>
+<p><strong>hello-http.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - centralita
+    - provider
+projectName: hello-http
+projectFile: |
+  options:
+    - virtualnet: ':&lt;random&gt; default'
+    - nat:
+  services:
+    darkhttpd:
+      makejail: 'gh+DtxdF/hello-http-makejail'
+      options:
+        - expose: '9128:80 ext_if:tailscale0 on_if:tailscale0'
+        - label: 'overlord.load-balancer:1'
+        - label: 'overlord.load-balancer.backend:web'
+        - label: 'overlord.load-balancer.interface:tailscale0'
+        - label: 'overlord.load-balancer.interface.port:9128'
+        - label: 'overlord.load-balancer.set.check:&quot;enabled&quot;'
+      arguments:
+        - darkhttpd_tag: 14.2
+</code></pre>
+<p>Profit!</p>
+<pre><code class="language-console">$ overlord apply -f hello-http.yml
+$ overlord get-info -f hello-http.yml -t projects --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: provider
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_17h57m16s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '79f16243de'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 1 minute and 22.1 seconds
+        job_id: 1
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:fa8f94b1-6b2b-4cb4-a808-e9da46014c86, code:202, transaction_id:8fcf5d67-12df-4fcd-a2e3-1f5f18fe1844, commit:1) server has been successfully added.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_17h57m16s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '52dfa071cb'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 1 minute and 19.53 seconds
+        job_id: 15
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:f4b9e170-67bb-403e-88da-112c55b45fce, code:202, transaction_id:0fa886c8-68a6-4716-aa6b-824aa3e776ad, commit:1) server has been successfully added.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+$ curl http://revproxy.overlord.lan
+Hello, world!
+UUID: 8579af73-7d11-40b3-8444-6dac62e34b8e
+$ curl http://revproxy.overlord.lan
+Hello, world!
+UUID: e463b1d5-13eb-4f04-9b0a-caf4339a8058
+</code></pre>
+<h2><a href="#horizontal-autoscaling" aria-hidden="true" class="anchor" id="horizontal-autoscaling"></a>Horizontal Autoscaling</h2>
+<p>Even when there are hundreds of servers, deploying projects is an easy task, however the problem with this approach is that we are wasting resources and the clients probably only use less than 5% of the resources of our cluster, or on the contrary, you can deploy your project on a few servers which you think is enough until you realize at some point that this is not enough, even worse, some servers can be down at any time for any reason. This is what Overlord autoscaling can solve.</p>
+<p><strong>hello-http.yml</strong>:</p>
+<pre><code class="language-yaml">kind: directorProject
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - desktop
+projectName: hello-http
+projectFile: |
+  options:
+    - virtualnet: ':&lt;random&gt; default'
+    - nat:
+  services:
+    darkhttpd:
+      makejail: 'gh+DtxdF/hello-http-makejail'
+      options:
+        - expose: '9128:80 ext_if:tailscale0 on_if:tailscale0'
+        - label: 'overlord.load-balancer:1'
+        - label: 'overlord.load-balancer.backend:web'
+        - label: 'overlord.load-balancer.interface:tailscale0'
+        - label: 'overlord.load-balancer.interface.port:9128'
+        - label: 'overlord.load-balancer.set.check:&quot;enabled&quot;'
+      arguments:
+        - darkhttpd_tag: 14.2
+autoScale:
+  replicas:
+    min: 3
+  labels:
+    - services
+    - provider
+</code></pre>
+<p>As you have probably noticed, we have specified two types of labels. This is the subtle difference between autoscaling and non-autoscaling deployments. Unlike non-autoscaling deployments, the labels in <code>deployIn.labels</code> are for using matching servers for autoscaling and monitoring, or in other words, the servers that match the specified labels (in this case <code>desktop</code>) are responsible for deployment, monitoring and, if necessary, redeployment. On the other side, the servers matching the labels in <code>autoScale.labels</code> (in this case <code>services</code> and <code>provider</code>) are for deploying the project as non-autoscaling deployments. We have specified that the project will have at least three replicas. There are other things we can specify like <code>rctl(8)</code> rules, but for simplicity this is sufficient.</p>
+<pre><code class="language-console">$ overlord apply -f hello-http.yml
+$ overlord get-info -f hello-http.yml -t projects --filter-per-project --use-autoscale-labels
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_19h36m17s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '0524bcf91b'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 58.24 seconds
+        job_id: 31
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:0d67d160-61af-4810-b277-5fb9e20da8eb, code:202, transaction_id:baa5b939-f724-4bd3-9d65-2ef769def3f5, commit:1) server has been successfully added.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: provider
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_20h00m11s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '2c2d22d2a5'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 4 minutes and 46.3 seconds   
+        job_id: 6
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:fa8f94b1-6b2b-4cb4-a808-e9da46014c86, code:202, transaction_id:6792e6fe-a
+778-44a7-b23a-1b2c23fe5904, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_20h04m25s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': 'a6549318ce'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 33.34 seconds
+        job_id: 21
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:f4b9e170-67bb-403e-88da-112c55b45fce, code:202, transaction_id:00e632ce-c215-4784-9e61-9507d914ba6a, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+$ overlord get-info -f hello-http.yml -t autoscale --filter-per-project
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    hello-http:
+      autoScale:
+        last_update: 7.65 seconds
+        operation: COMPLETED
+        output:
+         message: None
+$ curl http://revproxy.overlord.lan
+Hello, world!
+UUID: 08951a86-2aef-4e85-9bfc-7fe68b5cc62d
+$ curl http://revproxy.overlord.lan
+Hello, world!
+UUID: 5a06a89d-6109-438e-bc04-1ef739473994
+</code></pre>
+<p>Suppose the service in <code>provider</code> is down for any reason.</p>
+<pre><code class="language-console">$ overlord get-info -f hello-http.yml -t projects --filter-per-project --use-autoscale-labels
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_19h36m17s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '0524bcf91b'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 13 minutes and 37.64 seconds
+        job_id: 32
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:0d67d160-61af-4810-b277-5fb9e20da8eb, code:202, transaction_id:a2ba93d7-6ce6-4a36-aab2-09be13a00c17, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: provider
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_20h11m58s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 66, 'jail': '2c2d22d2a5'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 1 minute and 13.9 seconds
+        job_id: 7
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:fa8f94b1-6b2b-4cb4-a808-e9da46014c86, code:202, transaction_id:b19e7997-871c-4293-a8a9-51ce03f2bbaa, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_20h04m25s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': 'a6549318ce'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 8 minutes and 29.3 seconds
+        job_id: 21
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:f4b9e170-67bb-403e-88da-112c55b45fce, code:202, transaction_id:00e632ce-c215-4784-9e61-9507d914ba6a, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+</code></pre>
+<p>Without any intervention, let's see the magic.</p>
+<pre><code class="language-console">datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: None
+  labels:
+    - all
+    - desktop
+    - services
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_19h36m17s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '0524bcf91b'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 14 minutes and 30.7 seconds
+        job_id: 32
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:0d67d160-61af-4810-b277-5fb9e20da8eb, code:202, transaction_id:a2ba93d7-6ce6-4a36-aab2-09be13a00c17, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: provider
+  labels:
+    - all
+    - provider
+    - vm-only
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_20h13m37s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': '2c2d22d2a5'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 27.47 seconds
+        job_id: 8
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:fa8f94b1-6b2b-4cb4-a808-e9da46014c86, code:202, transaction_id:98ca3a6a-65e4-450b-a4c3-4f135e36be37, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    hello-http:
+      state: DONE
+      last_log: 2025-04-23_20h04m25s
+      locked: False
+      services:
+        - {'name': 'darkhttpd', 'status': 0, 'jail': 'a6549318ce'}
+      up:
+        operation: COMPLETED
+        output:
+         rc: 0
+         stdout: {'errlevel': 0, 'message': None, 'failed': []}
+        last_update: 9 minutes and 22.37 seconds
+        job_id: 21
+        restarted: False
+        labels:
+         error: False
+         message: None
+         load-balancer:
+           services:
+             darkhttpd:
+               error: False
+               message: (project:hello-http, service:darkhttpd, backend:web, serverid:f4b9e170-67bb-403e-88da-112c55b45fce, code:202, transaction_id:00e632ce-c215-4784-9e61-9507d914ba6a, commit:1) server has been successfully updated.
+         skydns:
+           services:
+             darkhttpd:
+               error: False
+               message: None
+</code></pre>
+<p>The service is alive again.</p>
+<h2><a href="#info-metrics-and-more" aria-hidden="true" class="anchor" id="info-metrics-and-more"></a>Info, Metrics, and more...</h2>
+<p>Thanks to <a href="https://github.com/DtxdF/AppJail">AppJail</a>, a lot of information can be obtained from jails. Overlord has a special deployment called <code>readOnly</code> that can be perfectly combined with the <code>get-info</code> command.</p>
+<p><strong>info.yml</strong>:</p>
+<pre><code class="language-yaml">kind: readOnly
+datacenters:
+  main:
+    entrypoint: !ENV '${ENTRYPOINT}'
+    access_token: !ENV '${TOKEN}'
+deployIn:
+  labels:
+    - all
+</code></pre>
+<pre><code class="language-console">$ overlord get-info -f info.yml -t projects --filter adguardhome
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  projects:
+    adguardhome:
+      state: DONE
+      last_log: 2025-04-07_17h32m40s
+      locked: False
+      services:
+        - {'name': 'server', 'status': 0, 'jail': '2a67806954'}
+$ overlord get-info -f info.yml -t jails --filter 2a67806954
+datacenter: http://127.0.0.1:8888
+  entrypoint: main
+  chain: centralita
+  labels:
+    - all
+    - centralita
+    - services
+  jails:
+    2a67806954:
+      stats:
+        cputime: 91
+        datasize: 8400896 (8.01 MiB)
+        stacksize: 0 (0 bytes)
+        coredumpsize: 0 (0 bytes)
+        memoryuse: 75104256 (71.62 MiB)
+        memorylocked: 0 (0 bytes)
+        maxproc: 4
+        openfiles: 296
+        vmemoryuse: 1367982080 (1.27 GiB)
+        pseudoterminals: 0
+        swapuse: 0 (0 bytes)
+        nthr: 13
+        msgqqueued: 0
+        msgqsize: 0
+        nmsgq: 0
+        nsem: 0
+        nsemop: 0
+        nshm: 0
+        shmsize: 0 (0 bytes)
+        wallclock: 363548
+        pcpu: 0
+        readbps: 0 (0 bytes)
+        writebps: 0 (0 bytes)
+        readiops: 0
+        writeiops: 0
+      info:
+        name: 2a67806954
+        network_ip4: 10.0.0.3
+        ports: 53/tcp,53/udp,53/tcp,53/udp
+        status: UP
+        type: thin
+        version: 14.2-RELEASE
+      cpuset: 0, 1
+      expose:
+        - {'enabled': '1', 'name': None, 'network_name': 'ajnet', 'hport': '53', 'jport': '53', 'protocol': 'udp', 'ext_if': 'tailscale0', 'on_if': 'tailscale0', 'nro': '3'}
+        - {'enabled': '1', 'name': None, 'network_name': 'ajnet', 'hport': '53', 'jport': '53', 'protocol': 'tcp', 'ext_if': 'jext', 'on_if': 'jext', 'nro': '0'}
+        - {'enabled': '1', 'name': None, 'network_name': 'ajnet', 'hport': '53', 'jport': '53', 'protocol': 'tcp', 'ext_if': 'tailscale0', 'on_if': 'tailscale0', 'nro': '2'}
+        - {'enabled': '1', 'name': None, 'network_name': 'ajnet', 'hport': '53', 'jport': '53', 'protocol': 'udp', 'ext_if': 'jext', 'on_if': 'jext', 'nro': '1'}
+      fstab:
+        - {'enabled': '1', 'name': None, 'device': '/var/appjail-volumes/adguardhome/db', 'mountpoint': 'adguardhome-db', 'type': '&lt;volumefs&gt;', 'options': 'rw', 'dump': '0', 'pass': None, 'nro': '0'}
+      labels:
+        - {'value': '1', 'name': 'overlord.skydns'}
+        - {'value': 'adguardhome', 'name': 'appjail.dns.alt-name'}
+        - {'value': 'tailscale0', 'name': 'overlord.skydns.interface'}
+        - {'value': 'adguardhome', 'name': 'overlord.skydns.group'}
+      nat:
+        - {'rule': 'nat on &quot;jext&quot; from 10.0.0.3 to any -&gt; (&quot;jext:0&quot;)', 'network': 'ajnet'}
+      volumes:
+        - {'mountpoint': 'usr/local/etc/AdGuardHome.yaml', 'type': '&lt;pseudofs&gt;', 'uid': None, 'gid': None, 'perm': '644', 'name': 'adguardhome-conf'}
+        - {'mountpoint': '/var/db/adguardhome', 'type': '&lt;pseudofs&gt;', 'uid': None, 'gid': None, 'perm': '750', 'name': 'adguardhome-db'}
+</code></pre>
+<h2><a href="#future-work" aria-hidden="true" class="anchor" id="future-work"></a>Future Work</h2>
+<p>There are more things Overlord can do for you than this document provides, see the <a href="https://github.com/DtxdF/overlord/wiki">Wiki</a> for more examples.</p>
+<p>Overlord is a recent project, there is a lot of room for improvement and future features will be added to improve its usability. If you would like to support the project, please <a href="https://www.patreon.com/AppJail">consider donating</a>.</p>
+]]></content:encoded></item><item><title>Smart Timeouts</title><link>/smart-timeouts.html</link><category>overlord</category><category>timeout</category><category>smart timeout</category><category>timeout strategy</category><category>distributed system</category><guid>/smart-timeouts.html</guid><pubDate>Sat, 12 Apr 2025 00:00:00 GMT</pubDate><source url="">tag-overlord</source><content:encoded><![CDATA[<p><em>Smart Timeouts</em> es una feature de <a href="https://github.com/DtxdF/overlord">Overlord</a> bastante simple, pero que me ha demostrado ser eficaz. Aunque la arquitectura de Overlord, la cual es un árbol encadenado (inspirado de alguna manera por DNS), es simple pero escala muy bien, eso trae el inconveniente de que un fallo en la <em>cadena C</em> puede ralentizar la <em>cadena B</em> y <em>A</em>. Al menos el cliente verá un error, pero no sin esperar unos segundos valiosos.</p>
 <p>Continuando, la idea de esta feature es deshabilitar la cadena que esté fallando, y está solo puede ser la cadena final (o la cola), o <em>&quot;la cadena C&quot;</em>. Esto al menos se debe realizar desde la <em>cadena B</em>. Al igual que el <em>timeout</em> se propaga, esta deshabilitación de la cola trae consigo el beneficio de que, dado que no se está intentando conectar a una cadena fallando, no generará un <em>timeout</em> por lo que todo el sistema se verá beneficiado, ahorrando unos buenos recursos, más si está sobrecargado.</p>
 <p>Suponiendo una lista de cadenas inicial <code>A -&gt; B -&gt; C</code>, el cliente intentará conectarse (indirectamente a través de las propias cadenas) a todas las cadenas para usar sus recursos. Todas las cadenas continúan operando con normalidad, pero repentinamente la <em>cadena C</em> falla por cualquier razón. El cliente ve el ejemplo luego de unos segundos. La <em>cadena B</em> sabe que hubo un fallo y dependiendo de cuanto sea la tolerancia, pondrá la cadena fallando en una lista negra por un periodo de tiempo configurable. Sin embargo, este periodo de tiempo configurable en el que la cadena fallando puede estar puede no ser suficiente, dado que tal vez el problema de la <em>cadena C</em> (la cadena fallando) puede persistir por un largo tiempo, así que cuando finalice el tiempo en el que esa cadena estará en la lista negra, el cliente se intentará conectar nuevamente sin éxito, lo cual pondrá nuevamente la cadena fallando en la lista negra, pero es donde se incrementa el tiempo hasta un máximo configurable. Así hasta que la cadena que esté fallando vuelva a la vida.</p>
 <p>Esto no quiere decir que el <em>timeout</em> se ha eliminado, no tendría sentido, es mejor arreglar el problema de la cadena fallando o simplemente configurar Overlord para eliminar o deshabilitar la cadena.</p>
