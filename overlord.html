@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/x-icon" href="./static/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark" />
     <meta name="generator" content="Marmite" />
@@ -11,6 +11,8 @@
 
 <meta property="og:description" content="When AppJail, a BSD-3 licensed open source framework entirely written in sh(1) and C to create isola...">
 
+
+<meta property="og:url" content="https://dtxdf.github.io/overlord.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Otro blog rand(3)">
@@ -25,9 +27,9 @@
     "@type": "BlogPosting",
     "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "/overlord.html"
+        "@id": "https://dtxdf.github.io/overlord.html"
     },
-    "url": "/overlord.html",
+    "url": "https://dtxdf.github.io/overlord.html",
     "headline": "Overlord: Deploy jails as fast as you code",
     "description": "When AppJail, a BSD-3 licensed open source framework entirely written in sh(1) and C to create isolated, portable and easy to deploy environ...",
     
@@ -37,7 +39,7 @@
         "name": "Otro blog rand(3)",
         "logo": {
             "@type": "ImageObject",
-            "url": "/"
+            "url": "https://dtxdf.github.io/"
         }
     },
     "datePublished": "2025-04-23T00:00:00+00:00"
@@ -46,35 +48,40 @@
 
 
     <title>Overlord: Deploy jails as fast as you code | Otro blog rand(3)</title>
-    <link rel="stylesheet" type="text/css" href="./static/pico.min.css">
-    <link rel="stylesheet" type="text/css" href="./static/marmite.css">
+    <link rel="stylesheet" type="text/css" href="/static/pico.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/marmite.css">
     
-    <link rel="stylesheet" type="text/css" href="./static/custom.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
     
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github.min.css" id="highlightjs-theme" />
 
 
 
-    <link rel="alternate" type="application/rss+xml" title="index" href="index.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: appjail" href="tag-appjail.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: freebsd" href="tag-freebsd.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: overlord" href="tag-overlord.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: jails" href="tag-jails.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: distributed system" href="tag-distributed-system.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: containers" href="tag-containers.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: appjail-director" href="tag-appjail-director.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: python" href="tag-python.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: gitea" href="tag-gitea.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: director" href="tag-director.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: timeout" href="tag-timeout.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: smart timeout" href="tag-smart-timeout.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: timeout strategy" href="tag-timeout-strategy.rss">
-    <link rel="alternate" type="application/rss+xml" title="year: 2025" href="archive-2025.rss">
-    <link rel="alternate" type="application/rss+xml" title="year: 2023" href="archive-2023.rss">
+        <link rel="alternate" type="application/rss+xml" title="index" href="/index.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: appjail" href="/tag-appjail.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: distributed system" href="/tag-distributed-system.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: freebsd" href="/tag-freebsd.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: containers" href="/tag-containers.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: jails" href="/tag-jails.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: overlord" href="/tag-overlord.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: timeout" href="/tag-timeout.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: timeout strategy" href="/tag-timeout-strategy.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: gitea" href="/tag-gitea.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: appjail-director" href="/tag-appjail-director.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: smart timeout" href="/tag-smart-timeout.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: python" href="/tag-python.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: director" href="/tag-director.rss">
+    <link rel="alternate" type="application/rss+xml" title="year: 2025" href="/archive-2025.rss">
+    <link rel="alternate" type="application/rss+xml" title="year: 2023" href="/archive-2023.rss">
+    
+
     
 
     
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1143940975357550"
+     crossorigin="anonymous"></script>
+
     
 </head>
 <body>
@@ -85,21 +92,27 @@
             <nav class="header-nav">
                 <ul class="header-name">
                     <li>
-                        <hgroup>
-                            <h2><a href="./" class="contrast">Otro blog rand(3)</a></h2>
-                             <p>Desde UTC-04:00 tecleando a lo loco</p> 
+                        <hgroup class="h-card">
+                            <h2>
+                                <a href="/" class="contrast p-name u-url">
+                                    
+                                        Otro blog rand(3)
+                                    
+                                </a>
+                            </h2>
+                             <p class="p-note">Desde UTC-04:00 tecleando a lo loco</p> 
                         </hgroup>
                     </li>
                 </ul>
                 <button id="menu-toggle" class="hamburger">&#9776;</button>
-                
+
                 <ul class="header-menu" id="header-menu">
                     
                       
                       
                     <li>
                         
-                        <a class="menu-item secondary"  href="./tags.html">tags</a>
+                        <a class="menu-item secondary"  href="/tags.html">tags</a>
                         
                     </li>
                     
@@ -107,7 +120,7 @@
                       
                     <li>
                         
-                        <a class="menu-item secondary"  href="./archive.html">archive</a>
+                        <a class="menu-item secondary"  href="/archive.html">archive</a>
                         
                     </li>
                     
@@ -115,7 +128,7 @@
                       
                     <li>
                         
-                        <a class="menu-item secondary"  href="./about.html">about</a>
+                        <a class="menu-item secondary"  href="/about.html">about</a>
                         
                     </li>
                     
@@ -132,7 +145,14 @@
 
 
 
-<article>
+<article class="h-entry">
+  <data class="p-name" value="Overlord: Deploy jails as fast as you code"></data>
+  <a class="u-url" href="/overlord.html" style="display: none;"></a>
+  
+  <time class="dt-published" datetime="2025-04-23T00:00:00+00:00" style="display: none;">Apr 23, 2025</time>
+  
+
+  
 
   
 
@@ -149,8 +169,9 @@
 </div>
 
   
+  
 
-  <div class="content-html"><p>When <a href="https://github.com/DtxdF/AppJail">AppJail</a>, a BSD-3 licensed open source framework entirely written in <code>sh(1)</code> and C to create isolated, portable and easy to deploy environments using FreeBSD jails that behave like an application, was created, my intention was to test ports so as not to mess up my main environment. Today AppJail is more than just a script for testing ports, it is highly flexible and has some very useful automation features.</p>
+  <div class="content-html e-content"><p>When <a href="https://github.com/DtxdF/AppJail">AppJail</a>, a BSD-3 licensed open source framework entirely written in <code>sh(1)</code> and C to create isolated, portable and easy to deploy environments using FreeBSD jails that behave like an application, was created, my intention was to test ports so as not to mess up my main environment. Today AppJail is more than just a script for testing ports, it is highly flexible and has some very useful automation features.</p>
 <p>After AppJail has reached stability and is used on a variety of systems, I have faced that just deploying a jail for every service I wanted is not feasible, especially when more and more services need to be deployed. Thus Director was born.</p>
 <p><a href="https://github.com/DtxdF/director">AppJail Director</a> is a tool for running multi-jail environments on AppJail using a simple YAML specification. A Director file is used to define how one or more jails that make up your application are configured. Once you have a Director file, you can create and start your application with a single command: <code>appjail-director up</code>.</p>
 <p>Director is the first attempt to follow the &quot;everything is code&quot; philosophy related to AppJail. Director organizes jails into projects, so you create a project with one or more jails declaratively, and Director takes into account any changes you have made to that file or a related file (such as the Makejail used). If Director has seen a change, it doesn't hesitate to destroy your jail to recreate it. This sounds a bit crazy, but is best explained in <em>The Ephemeral Concept</em>:</p>
@@ -2094,17 +2115,26 @@ datacenter: http://127.0.0.1:8888
     <small> Apr 23, 2025 - &#10710; 79 min</small>
 </span>
 
+          
         </div>
 
         <ul class="content-tags">
           
-          <li><a href="./tag-overlord.html">overlord</a></li>
           
-          <li><a href="./tag-appjail.html">appjail</a></li>
           
-          <li><a href="./tag-director.html">director</a></li>
+          <li><a href="/tag-overlord.html" class="p-category">overlord</a></li>
           
-          <li><a href="./tag-distributed-system.html">distributed system</a></li>
+          
+          
+          <li><a href="/tag-appjail.html" class="p-category">appjail</a></li>
+          
+          
+          
+          <li><a href="/tag-director.html" class="p-category">director</a></li>
+          
+          
+          
+          <li><a href="/tag-distributed-system.html" class="p-category">distributed system</a></li>
           
         </ul>
       </div>
@@ -2128,11 +2158,27 @@ datacenter: http://127.0.0.1:8888
       
       
       
-      <li><a href="./smart-timeouts.html">Smart Timeouts</a></li>
+      <li><a href="/smart-timeouts.html">Smart Timeouts</a></li>
       
     </ul>
   </article>
   
+
+
+
+
+<article>
+  <nav style="display: flex; justify-content: space-between;">
+    <div>
+      <a href="/smart-timeouts.html">← Smart Timeouts</a>
+    </div>
+    <div>
+      
+    </div>
+  </nav>
+</article>
+
+
 
 
 
@@ -2148,8 +2194,8 @@ datacenter: http://127.0.0.1:8888
         
     </main>
 
-    <script src="./static/marmite.js"></script>
-    <script src="./static/custom.js"></script>
+    <script src="/static/marmite.js"></script>
+    <script src="/static/custom.js"></script>
     
     
     

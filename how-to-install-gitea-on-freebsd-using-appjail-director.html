@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/x-icon" href="./static/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark" />
     <meta name="generator" content="Marmite" />
@@ -12,8 +12,10 @@
 <meta property="og:description" content="
 Managing our development projects is very easy nowadays, there are so many services to choose from,...">
 
-<meta property="og:image" content="/media/zNG2I4j.jpeg">
+<meta property="og:image" content="https://dtxdf.github.io/media/zNG2I4j.jpeg">
 
+
+<meta property="og:url" content="https://dtxdf.github.io/how-to-install-gitea-on-freebsd-using-appjail-director.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Otro blog rand(3)">
@@ -28,19 +30,19 @@ Managing our development projects is very easy nowadays, there are so many servi
     "@type": "BlogPosting",
     "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "/how-to-install-gitea-on-freebsd-using-appjail-director.html"
+        "@id": "https://dtxdf.github.io/how-to-install-gitea-on-freebsd-using-appjail-director.html"
     },
-    "url": "/how-to-install-gitea-on-freebsd-using-appjail-director.html",
+    "url": "https://dtxdf.github.io/how-to-install-gitea-on-freebsd-using-appjail-director.html",
     "headline": "How to Install Gitea on FreeBSD Using AppJail Director",
     "description": "Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but the...",
-    "image": "/media/zNG2I4j.jpeg",
+    "image": "https://dtxdf.github.io/media/zNG2I4j.jpeg",
     
     "publisher": {
         "@type": "Organization",
         "name": "Otro blog rand(3)",
         "logo": {
             "@type": "ImageObject",
-            "url": "/"
+            "url": "https://dtxdf.github.io/"
         }
     },
     "datePublished": "2023-12-22T00:00:00+00:00"
@@ -49,35 +51,40 @@ Managing our development projects is very easy nowadays, there are so many servi
 
 
     <title>How to Install Gitea on FreeBSD Using AppJail Director | Otro blog rand(3)</title>
-    <link rel="stylesheet" type="text/css" href="./static/pico.min.css">
-    <link rel="stylesheet" type="text/css" href="./static/marmite.css">
+    <link rel="stylesheet" type="text/css" href="/static/pico.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/marmite.css">
     
-    <link rel="stylesheet" type="text/css" href="./static/custom.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
     
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github.min.css" id="highlightjs-theme" />
 
 
 
-    <link rel="alternate" type="application/rss+xml" title="index" href="index.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: appjail" href="tag-appjail.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: freebsd" href="tag-freebsd.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: overlord" href="tag-overlord.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: distributed system" href="tag-distributed-system.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: containers" href="tag-containers.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: jails" href="tag-jails.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: timeout" href="tag-timeout.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: gitea" href="tag-gitea.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: director" href="tag-director.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: appjail-director" href="tag-appjail-director.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: smart timeout" href="tag-smart-timeout.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: timeout strategy" href="tag-timeout-strategy.rss">
-    <link rel="alternate" type="application/rss+xml" title="tag: python" href="tag-python.rss">
-    <link rel="alternate" type="application/rss+xml" title="year: 2025" href="archive-2025.rss">
-    <link rel="alternate" type="application/rss+xml" title="year: 2023" href="archive-2023.rss">
+        <link rel="alternate" type="application/rss+xml" title="index" href="/index.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: appjail" href="/tag-appjail.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: distributed system" href="/tag-distributed-system.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: freebsd" href="/tag-freebsd.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: containers" href="/tag-containers.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: jails" href="/tag-jails.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: overlord" href="/tag-overlord.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: timeout" href="/tag-timeout.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: timeout strategy" href="/tag-timeout-strategy.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: gitea" href="/tag-gitea.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: appjail-director" href="/tag-appjail-director.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: smart timeout" href="/tag-smart-timeout.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: python" href="/tag-python.rss">
+    <link rel="alternate" type="application/rss+xml" title="tag: director" href="/tag-director.rss">
+    <link rel="alternate" type="application/rss+xml" title="year: 2025" href="/archive-2025.rss">
+    <link rel="alternate" type="application/rss+xml" title="year: 2023" href="/archive-2023.rss">
+    
+
     
 
     
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1143940975357550"
+     crossorigin="anonymous"></script>
+
     
 </head>
 <body>
@@ -88,21 +95,27 @@ Managing our development projects is very easy nowadays, there are so many servi
             <nav class="header-nav">
                 <ul class="header-name">
                     <li>
-                        <hgroup>
-                            <h2><a href="./" class="contrast">Otro blog rand(3)</a></h2>
-                             <p>Desde UTC-04:00 tecleando a lo loco</p> 
+                        <hgroup class="h-card">
+                            <h2>
+                                <a href="/" class="contrast p-name u-url">
+                                    
+                                        Otro blog rand(3)
+                                    
+                                </a>
+                            </h2>
+                             <p class="p-note">Desde UTC-04:00 tecleando a lo loco</p> 
                         </hgroup>
                     </li>
                 </ul>
                 <button id="menu-toggle" class="hamburger">&#9776;</button>
-                
+
                 <ul class="header-menu" id="header-menu">
                     
                       
                       
                     <li>
                         
-                        <a class="menu-item secondary"  href="./tags.html">tags</a>
+                        <a class="menu-item secondary"  href="/tags.html">tags</a>
                         
                     </li>
                     
@@ -110,7 +123,7 @@ Managing our development projects is very easy nowadays, there are so many servi
                       
                     <li>
                         
-                        <a class="menu-item secondary"  href="./archive.html">archive</a>
+                        <a class="menu-item secondary"  href="/archive.html">archive</a>
                         
                     </li>
                     
@@ -118,7 +131,7 @@ Managing our development projects is very easy nowadays, there are so many servi
                       
                     <li>
                         
-                        <a class="menu-item secondary"  href="./about.html">about</a>
+                        <a class="menu-item secondary"  href="/about.html">about</a>
                         
                     </li>
                     
@@ -135,7 +148,14 @@ Managing our development projects is very easy nowadays, there are so many servi
 
 
 
-<article>
+<article class="h-entry">
+  <data class="p-name" value="How to Install Gitea on FreeBSD Using AppJail Director"></data>
+  <a class="u-url" href="/how-to-install-gitea-on-freebsd-using-appjail-director.html" style="display: none;"></a>
+  
+  <time class="dt-published" datetime="2023-12-22T00:00:00+00:00" style="display: none;">Dec 22, 2023</time>
+  
+
+  
 
   
 
@@ -152,8 +172,9 @@ Managing our development projects is very easy nowadays, there are so many servi
 </div>
 
   
+  
 
-  <div class="content-html"><p><figure><img src="media/zNG2I4j.jpeg" alt="" /></figure></p>
+  <div class="content-html e-content"><p><figure><img src="media/zNG2I4j.jpeg" alt="" /></figure></p>
 <p>Managing our development projects is very easy nowadays, there are so many services to choose from, some with less or more features, but there is an open source project, self-hosted, with so many features that can be installed in a few minutes and the best part is that we can install it on FreeBSD. The project is called Gitea, which is a software for hosting our projects using Git. It has other collaborative features such as bug tracking, code review, continuous integration, kanban boards, tickets and wikis.</p>
 <p>In this tutorial we will install Gitea and PostgreSQL on FreeBSD using AppJail Director.</p>
 <h2><a href="#pre-steps" aria-hidden="true" class="anchor" id="pre-steps"></a>Pre-Steps</h2>
@@ -420,21 +441,34 @@ command=&quot;/usr/local/sbin/gitea --config=/usr/local/etc/gitea/conf/app.ini s
     <small> Dec 22, 2023 - &#10710; 7 min</small>
 </span>
 
+          
         </div>
 
         <ul class="content-tags">
           
-          <li><a href="./tag-gitea.html">gitea</a></li>
           
-          <li><a href="./tag-appjail.html">appjail</a></li>
           
-          <li><a href="./tag-appjail-director.html">appjail-director</a></li>
+          <li><a href="/tag-gitea.html" class="p-category">gitea</a></li>
           
-          <li><a href="./tag-jails.html">jails</a></li>
           
-          <li><a href="./tag-freebsd.html">freebsd</a></li>
           
-          <li><a href="./tag-containers.html">containers</a></li>
+          <li><a href="/tag-appjail.html" class="p-category">appjail</a></li>
+          
+          
+          
+          <li><a href="/tag-appjail-director.html" class="p-category">appjail-director</a></li>
+          
+          
+          
+          <li><a href="/tag-jails.html" class="p-category">jails</a></li>
+          
+          
+          
+          <li><a href="/tag-freebsd.html" class="p-category">freebsd</a></li>
+          
+          
+          
+          <li><a href="/tag-containers.html" class="p-category">containers</a></li>
           
         </ul>
       </div>
@@ -455,6 +489,22 @@ command=&quot;/usr/local/sbin/gitea --config=/usr/local/etc/gitea/conf/app.ini s
 
 
 
+<article>
+  <nav style="display: flex; justify-content: space-between;">
+    <div>
+      <a href="/python-with-appjail-fastapi.html">← Python With Appjail | FastAPI</a>
+    </div>
+    <div>
+      <a href="/smart-timeouts.html">Smart Timeouts →</a>
+    </div>
+  </nav>
+</article>
+
+
+
+
+
+
 
 
         </section>
@@ -466,8 +516,8 @@ command=&quot;/usr/local/sbin/gitea --config=/usr/local/etc/gitea/conf/app.ini s
         
     </main>
 
-    <script src="./static/marmite.js"></script>
-    <script src="./static/custom.js"></script>
+    <script src="/static/marmite.js"></script>
+    <script src="/static/custom.js"></script>
     
     
     
