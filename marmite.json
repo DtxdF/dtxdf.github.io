@@ -1,10 +1,10 @@
 {
   "marmite_version": "0.2.6",
-  "posts": 4,
+  "posts": 5,
   "pages": 1,
-  "generated_at": "2025-09-13 15:19:45.852726192 -04:00",
-  "timestamp": 1757791185,
-  "elapsed_time": 0.08951042,
+  "generated_at": "2025-09-13 18:31:15.586578976 -04:00",
+  "timestamp": 1757802675,
+  "elapsed_time": 0.093564283,
   "config": {
     "name": "Otro blog rand(3)",
     "tagline": "Desde UTC-04:00 tecleando a lo loco",
